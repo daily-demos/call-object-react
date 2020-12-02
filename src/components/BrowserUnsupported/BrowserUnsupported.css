@@ -1,0 +1,12 @@
+.browser-unsupported {
+  position: absolute;
+  background: #ffffff;
+  font-family: Helvetica Neue;
+  font-size: 14px;
+  line-height: 17px;
+  text-align: center;
+  color: #4a4a4a;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

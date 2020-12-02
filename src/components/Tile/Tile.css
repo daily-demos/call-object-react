@@ -1,0 +1,45 @@
+.tile.small {
+  width: 200px;
+  margin: 0 10px;
+  position: relative;
+}
+
+.tile.large {
+  position: relative;
+  margin: 2px;
+}
+
+.tile video {
+  width: 100%;
+  position: absolute;
+  top: 0px;
+}
+
+.tile .background {
+  background-color: #000000;
+  width: 100%;
+  padding-top: 56.25%; /* Hard-coded 16:9 aspect ratio */
+}
+
+.tile.local video {
+  transform: scale(-1, 1);
+}
+
+.tile.small video {
+  border-radius: 4px;
+}
+
+.tile.small .background {
+  border-radius: 4px;
+}
+
+.tile .loading {
+  position: absolute;
+  color: #ffffff;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  line-height: 17px;
+}

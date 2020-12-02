@@ -1,0 +1,21 @@
+.call-message {
+  width: auto;
+  padding: 20px 30px;
+  top: 50%;
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  text-align: center;
+  font-size: 14px;
+  line-height: 17px;
+}
+
+.call-message.error {
+  color: #d81a1a;
+  background-color: #ffffff;
+}
+
+.call-message-header {
+  font-weight: bold;
+}

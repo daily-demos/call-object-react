@@ -1,0 +1,39 @@
+{
+  "name": "react-demo",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@daily-co/daily-js": "^0.9.995",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "react-scripts": "3.4.0",
+    "serve": "^11.3.0"
+  },
+  "scripts": {
+    "dev": "PORT=3002 react-scripts start",
+    "build": "react-scripts build",
+    "netlify-build": "sed -i s/DAILY_API_KEY_PLACEHOLDER/${DAILY_API_KEY}/g netlify.toml && npm run build",
+    "postbuild": "mv build temp-build && mkdir build && mv temp-build build && mv build/temp-build build/react-demo",
+    "start": "PORT=3002 serve build",
+    "eject": "react-scripts eject"
+  },
+  "homepage": "react-demo",
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
