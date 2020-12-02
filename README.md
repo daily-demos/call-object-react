@@ -27,7 +27,7 @@ OR...
 If you want access to the Daily REST API (using the proxy as specified in `netlify.toml`) as well as a more robust local dev environment, please do the following (in this project's directory): 
 
 1. Deploy to your Netlify account
-[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/daily-demos/prebuilt-ui)
+[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/daily-demos/call-object-react)
 
 2. Install the Netlify CLI `npm i -g netlify-cli`
 3. Login to your account `netlify login`
