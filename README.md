@@ -8,33 +8,36 @@ For a step-by-step guide on how we built this demo, [check out our blog post](ht
 
 ## Prerequisites
 
-- [Sign up for a Daily account](https://dashboard.daily.co/signup) if you'd like to plug your own room URL into the demo.
+- [Sign up for a Daily account](https://dashboard.daily.co/signup).
+- [Create a Daily room URL](https://help.daily.co/en/articles/4202139-creating-and-viewing-rooms) to test a video call quickly and hardcode a room URL (_this is NOT recommended for production_).
 
 ## How the demo works
 
-In our app, when a user clicks to start a call, the app will create a [meeting room](https://docs.daily.co/reference#rooms), pass the room’s URL to a new Daily call object, and join the call. The call object is something that keeps track of important information about the meeting, like other participants (including their audio and video tracks) and the things they do on the call (e.g. muting their mic or leaving), and provides methods for interacting with the meeting. The app leverages this object to update its state accordingly, and to carry out user actions like muting or screen-sharing. When the user leaves the meeting room, the call object is destroyed.
+In our app, when a user clicks to start a call, the app will create a [meeting room](https://docs.daily.co/reference#rooms), pass the room’s URL to a new Daily call object, and join the call [0]. The call object is something that keeps track of important information about the meeting, like other participants (including their audio and video tracks) and the things they do on the call (e.g. muting their mic or leaving), and provides methods for interacting with the meeting. The app leverages this object to update its state accordingly, and to carry out user actions like muting or screen-sharing. When the user leaves the meeting room, the call object is destroyed.
+
+[0] If you'll be hardcoding the room URL for testing, the room will be passed as is to the call object. It bears repeating that _this is NOT recommended for production_.
 
 ## Running locally
 
 1. Install dependencies `npm i`
 2. Start dev server `npm run dev`
 3. Then open your browser and go to `http://localhost:8080`
+4. Add the Daily room URL you created to line 31 of `api.js`, and follow the comment's instructions.
 
 OR...
 
-## Running using Netlify CLI 
+## Running using Netlify CLI
 
-If you want access to the Daily REST API (using the proxy as specified in `netlify.toml`) as well as a more robust local dev environment, please do the following (in this project's directory): 
+If you want access to the Daily REST API (using the proxy as specified in `netlify.toml`) as well as a more robust local dev environment, please do the following (in this project's directory):
 
 1. Deploy to your Netlify account
-[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/daily-demos/call-object-react)
-
+   [![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/daily-demos/call-object-react)
 2. Install the Netlify CLI `npm i -g netlify-cli`
 3. Login to your account `netlify login`
 4. Rename `sample.env` to `.env` and add your API key
-4. Start the dev server `netlify dev`
+5. Start the dev server `netlify dev`
 
-> Note: If the API proxy isn't working locally you may need to run `netlify build` first. This will put API key in the `netlify.toml` file, so make sure you don't commit this change. 
+> Note: If the API proxy isn't working locally you may need to run `netlify build` first. This will put API key in the `netlify.toml` file, so make sure you don't commit this change.
 
 ## Contributing and feedback
 
