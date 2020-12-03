@@ -1,0 +1,30 @@
+.chat {
+  position: absolute;
+  right: 10px;
+  bottom: 75px;
+  width: 250px;
+  height: calc(100% - 150px);
+  background-color: #f2f2f2;
+  border-radius: 4px;
+}
+
+.messageList {
+  padding: 10px;
+}
+
+.chat-input {
+  position: absolute;
+  bottom: 0px;
+  width: 200px;
+  height: 25px;
+}
+
+.send-chat-button {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  width: 50px;
+  height: 31px;
+  background-color: #f2f2f2;
+  font-weight: bold;
+}

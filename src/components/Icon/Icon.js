@@ -4,6 +4,7 @@ const TYPE_MUTE_CAMERA = 'camera';
 const TYPE_MUTE_MIC = 'mute-mic';
 const TYPE_SCREEN = 'screen';
 const TYPE_LEAVE = 'leave';
+const TYPE_CHAT = 'chat';
 
 /**
  * Props:
@@ -85,6 +86,14 @@ export default function Icon(props) {
             fillRule="evenodd"
           />
         );
+      case TYPE_CHAT:
+        return (
+          <path
+            d="M8.984 17.522c.93.308 1.949.478 3.016.478 4.418 0 8-2.91 8-6.5S16.418 5 12 5s-8 2.91-8 6.5c0 1.65.756 3.156 2.003 4.302a8.751 8.751 0 0 1-.71 2.187c-.317.606-.457 1.011 0 1.011 1.727 0 1.99-1.236 3.691-1.478z"
+            fill={getFillColor()}
+            fillRule="evenodd"
+          />
+        );
       default:
         throw new Error();
     }
@@ -103,4 +112,4 @@ export default function Icon(props) {
   );
 }
 
-export { TYPE_MUTE_CAMERA, TYPE_MUTE_MIC, TYPE_SCREEN, TYPE_LEAVE };
+export { TYPE_MUTE_CAMERA, TYPE_MUTE_MIC, TYPE_SCREEN, TYPE_LEAVE, TYPE_CHAT };
