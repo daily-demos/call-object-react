@@ -15,3 +15,9 @@
   status = 200
   force = true
   headers = {Authorization = "Bearer DAILY_API_KEY_PLACEHOLDER"}
+
+# The following redirect is intended for use with most SPAs that handle routing internally.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
