@@ -16,11 +16,9 @@
     "dev": "PORT=3002 react-scripts start",
     "build": "react-scripts build",
     "netlify-build": "sed -i s/DAILY_API_KEY_PLACEHOLDER/${DAILY_API_KEY}/g netlify.toml && npm run build",
-    "postbuild": "mv build temp-build && mkdir build && mv temp-build build && mv build/temp-build build/react-demo",
     "start": "PORT=3002 serve build",
     "eject": "react-scripts eject"
   },
-  "homepage": "react-demo",
   "eslintConfig": {
     "extends": "react-app"
   },
