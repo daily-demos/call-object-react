@@ -1,4 +1,4 @@
-[[build]]
+[build]
   command = "npm run netlify-build"
 
 [template.environment]
