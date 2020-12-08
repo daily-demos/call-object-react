@@ -6,6 +6,8 @@ This demo is meant to showcase a basic but complete video chat web app using Rea
 
 For a step-by-step guide on how we built this demo, [check out our blog post](https://www.daily.co/blog/building-a-custom-video-chat-app-with-react/).
 
+Check out a live version of the demo [here](https://call-object-react.netlify.app/). 
+
 ## Prerequisites
 
 - [Sign up for a Daily account](https://dashboard.daily.co/signup).
