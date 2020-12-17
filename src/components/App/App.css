@@ -4,3 +4,7 @@
   height: 100%;
   width: 100%;
 }
+
+#widget2 {
+  display: none;
+}

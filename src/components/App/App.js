@@ -16,6 +16,7 @@ const STATE_JOINING = 'STATE_JOINING';
 const STATE_JOINED = 'STATE_JOINED';
 const STATE_LEAVING = 'STATE_LEAVING';
 const STATE_ERROR = 'STATE_ERROR';
+const MUSIC_ROOM = 'https://evenfinancial.daily.co/TU6dcaWq6huQeX7uXIy0';
 
 export default function App() {
   const [appState, setAppState] = useState(STATE_IDLE);
@@ -100,7 +101,8 @@ export default function App() {
 
   useEffect(() => {
     // some race condition going on for direct load
-    if (appState === 'STATE_JOINED' && !!player) player.playVideo();
+    if (appState === 'STATE_JOINED' && !!player && roomUrl === MUSIC_ROOM)
+      player.playVideo();
   });
   /**
    * Uncomment to attach call object to window for debugging purposes.
@@ -219,7 +221,7 @@ export default function App() {
   };
   return (
     <div className="app">
-      <YouTube videoId="5qap5aO4i9A" opts={opts} onReady={onReady} />;
+      <YouTube videoId="5qap5aO4i9A" opts={opts} onReady={onReady} />
       {showCall ? (
         // NOTE: for an app this size, it's not obvious that using a Context
         // is the best choice. But for larger apps with deeply-nested components
