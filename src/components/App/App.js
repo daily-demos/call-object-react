@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Call from '../Call/Call';
 import StartButton from '../StartButton/StartButton';
+import YouTube from 'react-youtube';
 import api from '../../api';
 import './App.css';
 import Tray from '../Tray/Tray';
@@ -18,9 +19,9 @@ const STATE_ERROR = 'STATE_ERROR';
 
 export default function App() {
   const [appState, setAppState] = useState(STATE_IDLE);
+  const [player, setPlayer] = useState(null);
   const [roomUrl, setRoomUrl] = useState(null);
   const [callObject, setCallObject] = useState(null);
-
   /**
    * Creates a new call room.
    */
@@ -35,6 +36,10 @@ export default function App() {
         setAppState(STATE_IDLE);
       });
   }, []);
+
+  const onReady = (event) => {
+    setPlayer(event.target);
+  };
 
   /**
    * Starts joining an existing call.
@@ -93,6 +98,10 @@ export default function App() {
     window.history.replaceState(null, null, pageUrl);
   }, [roomUrl]);
 
+  useEffect(() => {
+    // some race condition going on for direct load
+    if (appState === 'STATE_JOINED' && !!player) player.playVideo();
+  });
   /**
    * Uncomment to attach call object to window for debugging purposes.
    */
@@ -204,9 +213,13 @@ export default function App() {
    * !!!
    */
   const enableStartButton = appState === STATE_IDLE;
-
+  const opts = {
+    height: '2',
+    width: '2',
+  };
   return (
     <div className="app">
+      <YouTube videoId="5qap5aO4i9A" opts={opts} onReady={onReady} />;
       {showCall ? (
         // NOTE: for an app this size, it's not obvious that using a Context
         // is the best choice. But for larger apps with deeply-nested components
