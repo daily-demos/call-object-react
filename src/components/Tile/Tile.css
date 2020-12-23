@@ -33,13 +33,25 @@
   border-radius: 4px;
 }
 
-.tile .loading {
+.tile .overlay {
   position: absolute;
   color: #ffffff;
   top: 50%;
   left: 50%;
   margin: 0;
   transform: translate(-50%, -50%);
+  font-size: 14px;
+  line-height: 17px;
+}
+
+.tile .corner {
+  position: absolute;
+  color: #ffffff;
+  background-color: #000000;
+  padding: 10px;
+  margin: 0;
+  bottom: 0;
+  left: 0;
   font-size: 14px;
   line-height: 17px;
 }
