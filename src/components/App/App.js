@@ -15,11 +15,17 @@ const STATE_JOINING = 'STATE_JOINING';
 const STATE_JOINED = 'STATE_JOINED';
 const STATE_LEAVING = 'STATE_LEAVING';
 const STATE_ERROR = 'STATE_ERROR';
+// const CONNECTION_STATE_SIGNALING = 'CONNECTION_STATE_SIGNALING';
+// const CONNECTION_STATE_P2P = 'CONNECTION_STATE_P2P';
+// const CONNECTION_STATE_SFU = 'CONNECTION_STATE_SFU';
 
 export default function App() {
   const [appState, setAppState] = useState(STATE_IDLE);
   const [roomUrl, setRoomUrl] = useState(null);
   const [callObject, setCallObject] = useState(null);
+  // const [connectionState, setConnectionState] = useState();
+  // const [subscribedTracks, setSubscribedTracks] = useState([]);
+  // const [unsubscribedTracks, setUnsubscribedTracks] = useState([]);
 
   /**
    * Creates a new call room.
@@ -46,7 +52,9 @@ export default function App() {
    * events.
    */
   const startJoiningCall = useCallback((url) => {
-    const newCallObject = DailyIframe.createCallObject();
+    const newCallObject = DailyIframe.createCallObject({
+      subscribeToTracksAutomatically: false,
+    });
     setRoomUrl(url);
     setCallObject(newCallObject);
     setAppState(STATE_JOINING);
@@ -150,6 +158,85 @@ export default function App() {
     };
   }, [callObject]);
 
+  /*
+   * Helper function to update connection state and subscribe to appropriate participant tracks
+   */
+  // function handleNetworkConnection(event) {
+  //   const sessionIds = Object.keys(callObject.participants()).filter(
+  //     (id) => id != 'local'
+  //   );
+  //   console.log(`Here are all your sessionIds: ${sessionIds}`);
+  //   switch (event.type) {
+  //     case 'signaling':
+  //       setConnectionState(CONNECTION_STATE_SIGNALING);
+  //       console.log(`your connection is: ${connectionState}`);
+  //       sessionIds.forEach((id) => {
+  //         callObject.updateParticipant(id, { setSubscribedTracks: true });
+  //         // Add session id to state array (not local!)
+  //         setSubscribedTracks([...subscribedTracks, id]);
+  //       });
+  //       break;
+  //     case 'peer-to-peer':
+  //       setConnectionState(CONNECTION_STATE_P2P);
+  //       console.log(`your connection is: ${connectionState}`);
+  //       sessionIds.forEach((id) => {
+  //         callObject.updateParticipant(id, { setSubscribedTracks: true });
+  //         // Add session id to state array (not local!)
+  //         setSubscribedTracks([...subscribedTracks, id]);
+  //       });
+  //       break;
+  //     case 'sfu':
+  //       setConnectionState(CONNECTION_STATE_SFU);
+  //       console.log(`your connection is: ${connectionState}`);
+  //       // Get id's from state array after first two
+  //       // Unsubscribe from those tracks
+  //       // Update state to be just the first two
+  //       const unsubscribeIds = sessionIds.slice(2);
+  //       console.log(`Id's you will unsubscribe from: ${unsubscribeIds}`);
+
+  //       unsubscribeIds.forEach((id) => {
+  //         callObject.updateParticipant(id, { setSubscribedTracks: false });
+  //       });
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
+
+  /**
+   * Subscribe to new participant tracks when they join the call, if in P2P
+   */
+  // useEffect(() => {
+  //   if (!callObject) {
+  //     return;
+  //   }
+
+  //   function handleParticipantJoined(event) {
+  //     handleNetworkConnection(event);
+  //   }
+
+  //   callObject.on('participant-joined', handleParticipantJoined);
+
+  //   return function cleanup() {
+  //     callObject.off('app-message', handleParticipantJoined);
+  //   };
+  // }, [callObject, connectionState]);
+
+  /**
+   * Listen for network connection changes, and update the connection state and display accordingly.
+   */
+  // useEffect(() => {
+  //   if (!callObject) {
+  //     return;
+  //   }
+
+  //   callObject.on('network-connection', handleNetworkConnection);
+
+  //   return function cleanup() {
+  //     callObject.off('network-connection', handleNetworkConnection);
+  //   };
+  // }, [callObject, connectionState]);
+
   /**
    * Listen for app messages from other call participants.
    */
@@ -173,12 +260,56 @@ export default function App() {
   }, [callObject]);
 
   /**
+   * Rotate through participant video streams
+   */
+  // const toggleParticipantStreams = () => {
+  //   const participants = callObject.participants();
+  //   const ids = Object.keys(participants).filter((id) => id != 'local');
+  //   let lastSubscribedIndex = 0;
+
+  // Best way to track: tracks.video.subscribed (then not missing camera off)
+  // If participants enter and leave meeting, order not guaranteed
+  // Participants should have joined-at
+  // First sort by joined-at, chronological, or user
+  // Then track of one index -- track what page you're on, then only showing
+
+  //   for (let i = 0; i < ids.length; i++) {
+  //     if (participants[ids[i]].videoTrack) {
+  //       callObject.updateParticipant(ids[i], { setSubscribedTracks: false });
+  //       lastSubscribedIndex = i;
+  //     }
+  //   }
+
+  //   if (lastSubscribedIndex == ids.length - 2) {
+  //     callObject.updateParticipant(ids[lastSubscribedIndex + 1], {
+  //       setSubscribedTracks: true,
+  //     });
+  //     callObject.updateParticipant(ids[0], { setSubscribedTracks: true });
+  //   } else if (lastSubscribedIndex == ids.length - 1) {
+  //     callObject.updateParticipant(ids[0], { setSubscribedTracks: true });
+  //     callObject.updateParticipant(ids[1], { setSubscribedTracks: true });
+  //   } else {
+  //     callObject.updateParticipant(ids[lastSubscribedIndex + 1], {
+  //       setSubscribedTracks: true,
+  //     });
+  //     callObject.updateParticipant(ids[lastSubscribedIndex + 2], {
+  //       setSubscribedTracks: true,
+  //     });
+  //   }
+  // };
+
+  /**
    * Show the call UI if we're either joining, already joined, or are showing
    * an error.
    */
   const showCall = [STATE_JOINING, STATE_JOINED, STATE_ERROR].includes(
     appState
   );
+
+  /**
+   * Show the pagination UI if the call has switched to SFU mode
+   */
+  // const showPagination = [CONNECTION_STATE_SFU].includes(connectionState);
 
   /**
    * Only enable the call buttons (camera toggle, leave call, etc.) if we're joined

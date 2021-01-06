@@ -13,6 +13,7 @@
   width: 100%;
   position: absolute;
   top: 0px;
+  z-index: 1;
 }
 
 .tile .background {
@@ -42,4 +43,20 @@
   transform: translate(-50%, -50%);
   font-size: 14px;
   line-height: 17px;
+}
+
+.test-name {
+  padding: 5px 5px;
+  position: absolute;
+  background: #ffffff;
+  font-family: 'Helvetica Neue';
+  font-style: normal;
+  font-weight: normal;
+  font-size: 3rem;
+  line-height: 40px;
+  text-align: center;
+  color: #4a4a4a;
+  top: 0;
+  left: 0;
+  z-index: 10;
 }

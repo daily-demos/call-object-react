@@ -54,12 +54,17 @@ export default function Tile(props) {
     return classNames;
   }
 
+  function getTestName() {
+    return props.testName && <div className="test-name">{props.testName}</div>;
+  }
+
   return (
     <div className={getClassNames()} onClick={props.onClick}>
       <div className="background" />
       {getLoadingComponent()}
       {getVideoComponent()}
       {getAudioComponent()}
+      {getTestName()}
     </div>
   );
 }

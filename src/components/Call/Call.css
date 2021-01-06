@@ -20,3 +20,12 @@
   display: flex;
   align-items: center;
 }
+
+.paginateButton {
+  height: 100px;
+  width: 100px;
+  position: absolute;
+  bottom: 70px;
+  right: 10px;
+  background-color: #f2f2f2;
+}

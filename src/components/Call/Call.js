@@ -7,6 +7,10 @@ import {
   initialCallState,
   CLICK_ALLOW_TIMEOUT,
   PARTICIPANTS_CHANGE,
+  NETWORK_CHANGE,
+  TRACKS_CHANGE,
+  PARTICIPANT_JOINED,
+  PARTICIPANT_LEFT,
   CAM_OR_MIC_ERROR,
   FATAL_ERROR,
   callReducer,
@@ -14,12 +18,66 @@ import {
   isScreenShare,
   containsScreenShare,
   getMessage,
+  checkForSFU,
 } from './callState';
 import { logDailyEvent } from '../../logUtils';
 
 export default function Call() {
   const callObject = useContext(CallObjectContext);
   const [callState, dispatch] = useReducer(callReducer, initialCallState);
+
+  /**
+   * Subscribe to new participant tracks when they join the call, if in P2P
+   * Add a participant id to the ordered list of ids when they join
+   */
+  useEffect(() => {
+    if (!callObject) {
+      return;
+    }
+
+    function handleParticipantJoined(event) {
+      let sfuMode = checkForSFU(callState);
+      let id = event.participant.session_id;
+      if (!sfuMode) {
+        callObject.updateParticipant(event.participant.session_id, {
+          setSubscribedTracks: true,
+        });
+      }
+      dispatch({
+        type: PARTICIPANT_JOINED,
+        participant: id,
+      });
+    }
+
+    callObject.on('participant-joined', handleParticipantJoined);
+
+    return function cleanup() {
+      callObject.off('participant-joined', handleParticipantJoined);
+    };
+  }, [callObject, callState]);
+
+  /**
+   * Remove a participant's id from the ordered id list when they leave the call
+   */
+  useEffect(() => {
+    if (!callObject) {
+      return;
+    }
+
+    function handleParticipantLeft(event) {
+      let id = event.participant.session_id;
+      dispatch({
+        type: PARTICIPANT_LEFT,
+        participant: id,
+      });
+    }
+
+    callObject.on('participant-left', handleParticipantLeft);
+
+    return function cleanup() {
+      callObject.off('participant-left', handleParticipantLeft);
+    };
+  }, [callObject, callState]);
 
   /**
    * Start listening for participant changes, when the callObject is set.
@@ -34,7 +92,7 @@ export default function Call() {
     ];
 
     function handleNewParticipantsState(event) {
-      event && logDailyEvent(event);
+      // event && logDailyEvent(event);
       dispatch({
         type: PARTICIPANTS_CHANGE,
         participants: callObject.participants(),
@@ -130,41 +188,114 @@ export default function Call() {
     [callObject]
   );
 
+  /**
+   * Start listening for network changes, when the callObject is set.
+   */
+  useEffect(() => {
+    if (!callObject) return;
+
+    function handleNetworkChange(e) {
+      // If it was an SFU switch: 1) Unsubscribe from all ids after first two
+      const participants = callObject.participants();
+      const participantIds = Object.keys(callObject.participants()).filter(
+        (id) => id !== 'local'
+      );
+      const unsubscribeIds = participantIds.slice(
+        callState.displayedVideoStreams
+      );
+      if (e.type === 'sfu') {
+        unsubscribeIds.forEach((id) =>
+          callObject.updateParticipant(id, { setSubscribedTracks: false })
+        );
+      }
+      dispatch({
+        type: NETWORK_CHANGE,
+        connection: e.type,
+      });
+    }
+
+    callObject.on('network-connection', handleNetworkChange);
+
+    return function cleanup() {
+      callObject.off('network-connection', handleNetworkChange);
+    };
+  }, [callObject]);
+
   function getTiles() {
     let largeTiles = [];
     let smallTiles = [];
     Object.entries(callState.callItems).forEach(([id, callItem]) => {
-      const isLarge =
-        isScreenShare(id) ||
-        (!isLocal(id) && !containsScreenShare(callState.callItems));
-      const tile = (
-        <Tile
-          key={id}
-          videoTrack={callItem.videoTrack}
-          audioTrack={callItem.audioTrack}
-          isLocalPerson={isLocal(id)}
-          isLarge={isLarge}
-          isLoading={callItem.isLoading}
-          onClick={
-            isLocal(id)
-              ? null
-              : () => {
-                  sendHello(id);
-                }
-          }
-        />
-      );
-      if (isLarge) {
-        largeTiles.push(tile);
+      if (callItem.isLoading || !callItem.videoTrack) {
+        return;
       } else {
-        smallTiles.push(tile);
+        const isLarge =
+          isScreenShare(id) ||
+          (!isLocal(id) && !containsScreenShare(callState.callItems));
+        const tile = (
+          <Tile
+            key={id}
+            videoTrack={callItem.videoTrack}
+            audioTrack={callItem.audioTrack}
+            testName={callItem.testName}
+            isLocalPerson={isLocal(id)}
+            isLarge={isLarge}
+            isLoading={callItem.isLoading}
+            onClick={
+              isLocal(id)
+                ? null
+                : () => {
+                    sendHello(id);
+                  }
+            }
+          />
+        );
+        if (isLarge) {
+          largeTiles.push(tile);
+        } else {
+          smallTiles.push(tile);
+        }
       }
     });
     return [largeTiles, smallTiles];
   }
 
+  function rotateParticipants() {
+    console.log(`Clicked!`);
+    console.log(
+      `You can access ordered ids here! ${callState.orderedParticipantIds}`
+    );
+    let unsubscribedIds = [];
+    // Unsubscribe from first two id's from the list
+    for (let i = 0; i < callState.displayedVideoStreams; i++) {
+      callObject.updateParticipant(callState.orderedParticipantIds[i], {
+        setSubscribedTracks: false,
+      });
+      unsubscribedIds = [
+        ...unsubscribedIds,
+        callState.orderedParticipantIds[i],
+      ];
+    }
+    console.log(`You are going to unsubscribe from ${unsubscribedIds}`);
+    // Subscribe to next two
+    for (
+      let i = callState.displayedVideoStreams;
+      i < callState.displayedVideoStreams + callState.displayedVideoStreams;
+      i++
+    ) {
+      callObject.updateParticipant(callState.orderedParticipantIds[i], {
+        setSubscribedTracks: true,
+      });
+    }
+    dispatch({
+      type: TRACKS_CHANGE,
+      unsubscribedIds: unsubscribedIds,
+    });
+  }
+
   const [largeTiles, smallTiles] = getTiles();
   const message = getMessage(callState);
+  const sfuMode = checkForSFU(callState);
+
   return (
     <div className="call">
       <div className="large-tiles">
@@ -182,6 +313,11 @@ export default function Call() {
           isError={message.isError}
         />
       )}
+      {sfuMode ? (
+        <button className="paginateButton" onClick={rotateParticipants}>
+          Rotate participants
+        </button>
+      ) : null}
     </div>
   );
 }
