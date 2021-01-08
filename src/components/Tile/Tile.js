@@ -12,7 +12,7 @@ function getTrackUnavailableMessage(kind, trackState) {
       }
     case 'off':
       if (trackState.off.byUser) {
-        return `${kind} off`;
+        return `${kind} muted`;
       } else if (trackState.off.byBandwidth) {
         return `${kind} muted to save bandwidth`;
       }
