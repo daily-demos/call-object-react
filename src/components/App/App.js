@@ -8,6 +8,8 @@ import CallObjectContext from '../../CallObjectContext';
 import { roomUrlFromPageUrl, pageUrlFromRoomUrl } from '../../urlUtils';
 import DailyIframe from '@daily-co/daily-js';
 import { logDailyEvent } from '../../logUtils';
+import dailyLogo from '../../images/logo@2x.png';
+import gitHubLogo from '../../images/github@icons8.png';
 
 const STATE_IDLE = 'STATE_IDLE';
 const STATE_CREATING = 'STATE_CREATING';
@@ -207,6 +209,10 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="header">
+        <img src={dailyLogo} className="dailyLogo"></img>
+        <img src={gitHubLogo}></img>
+      </div>
       {showCall ? (
         // NOTE: for an app this size, it's not obvious that using a Context
         // is the best choice. But for larger apps with deeply-nested components
@@ -220,12 +226,21 @@ export default function App() {
           />
         </CallObjectContext.Provider>
       ) : (
-        <StartButton
-          disabled={!enableStartButton}
-          onClick={() => {
-            createCall().then((url) => startJoiningCall(url));
-          }}
-        />
+        <div>
+          <h1 class="title">Daily call object React demo</h1>
+          <div class="instructions">
+            <p class="instructionsText">
+              To get started, enter an existing room URL or create a temporary
+              demo room
+            </p>
+            <StartButton
+              disabled={!enableStartButton}
+              onClick={() => {
+                createCall().then((url) => startJoiningCall(url));
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

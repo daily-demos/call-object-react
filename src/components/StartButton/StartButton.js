@@ -9,7 +9,7 @@ import './StartButton.css';
 export default function StartButton(props) {
   return (
     <button
-      className="start-button"
+      className="startButton"
       disabled={props.disabled}
       onClick={props.onClick}
     >

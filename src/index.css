@@ -1,8 +1,12 @@
+:root {
+  --grey-lightest: #e6eaef;
+  --fontFamily: GraphikRegular, 'Helvetica Neue', Sans-Serif;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--fontFamily);
+  background-color: var(--grey-lightest);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
