@@ -227,13 +227,23 @@ export default function App() {
         </CallObjectContext.Provider>
       ) : (
         <div>
-          <h1 class="title">Daily call object React demo</h1>
-          <div class="instructions">
-            <p class="instructionsText">
+          <h1 className="title">Daily call object React demo</h1>
+          <div className="instructions">
+            <p className="instructionsText">
               To get started, enter an existing room URL or create a temporary
               demo room
             </p>
+            <label for="roomURL"></label>
+            <input
+              type="text"
+              className="roomURL"
+              id="roomURL"
+              placeholder="Room URL"
+              pattern="^(https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.(daily\.co\/)([a-z0-9]+)+$"
+            />
+            <button className="createRoomButton">Create demo room</button>
             <StartButton
+              className="startButton"
               disabled={!enableStartButton}
               onClick={() => {
                 createCall().then((url) => startJoiningCall(url));

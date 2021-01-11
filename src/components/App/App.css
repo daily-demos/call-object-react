@@ -1,5 +1,7 @@
 :root {
   --fontFamily: GraphikRegular, 'Helvetica Neue', Sans-Serif;
+  --white: #ffffff;
+  --grey: #c8d1dc;
 }
 
 .app {
@@ -18,6 +20,10 @@
   margin: 1rem;
 }
 
+.dailyLogo {
+  width: 70px;
+}
+
 .title {
   margin-bottom: 0;
   text-align: center;
@@ -32,6 +38,26 @@
   width: 100%;
 }
 
-.dailyLogo {
-  width: 70px;
+.roomURL {
+  width: 300px;
+  line-height: 18px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  padding-left: 7px;
+  border-radius: 8px;
+}
+
+.startButton,
+.createRoomButton {
+  padding: 8px 16px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 8px;
+  background-color: var(--white);
+  border-width: 1px;
+  border-color: var(--grey);
+  cursor: pointer;
+  width: 250px;
 }

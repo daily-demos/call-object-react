@@ -13,7 +13,7 @@ export default function StartButton(props) {
       disabled={props.disabled}
       onClick={props.onClick}
     >
-      Click to start a call
+      Join call
     </button>
   );
 }
