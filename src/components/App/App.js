@@ -208,50 +208,52 @@ export default function App() {
   const enableStartButton = appState === STATE_IDLE;
 
   return (
-    <div className="app">
+    <div className="wrapper">
       <div className="header">
         <img src={dailyLogo} className="dailyLogo"></img>
         <img src={gitHubLogo}></img>
       </div>
-      {showCall ? (
-        // NOTE: for an app this size, it's not obvious that using a Context
-        // is the best choice. But for larger apps with deeply-nested components
-        // that want to access call object state and bind event listeners to the
-        // call object, this can be a helpful pattern.
-        <CallObjectContext.Provider value={callObject}>
-          <Call roomUrl={roomUrl} />
-          <Tray
-            disabled={!enableCallButtons}
-            onClickLeaveCall={startLeavingCall}
-          />
-        </CallObjectContext.Provider>
-      ) : (
-        <div>
-          <h1 className="title">Daily call object React demo</h1>
-          <div className="instructions">
-            <p className="instructionsText">
-              To get started, enter an existing room URL or create a temporary
-              demo room
-            </p>
-            <label for="roomURL"></label>
-            <input
-              type="text"
-              className="roomURL"
-              id="roomURL"
-              placeholder="Room URL"
-              pattern="^(https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.(daily\.co\/)([a-z0-9]+)+$"
+      <div className="app">
+        {showCall ? (
+          // NOTE: for an app this size, it's not obvious that using a Context
+          // is the best choice. But for larger apps with deeply-nested components
+          // that want to access call object state and bind event listeners to the
+          // call object, this can be a helpful pattern.
+          <CallObjectContext.Provider value={callObject}>
+            <Call roomUrl={roomUrl} />
+            <Tray
+              disabled={!enableCallButtons}
+              onClickLeaveCall={startLeavingCall}
             />
-            <button className="createRoomButton">Create demo room</button>
-            <StartButton
-              className="startButton"
-              disabled={!enableStartButton}
-              onClick={() => {
-                createCall().then((url) => startJoiningCall(url));
-              }}
-            />
+          </CallObjectContext.Provider>
+        ) : (
+          <div className="introInstructions">
+            <h1 className="title">Daily call object React demo</h1>
+            <div className="instructions">
+              <p className="instructionsText">
+                To get started, enter an existing room URL or create a temporary
+                demo room
+              </p>
+              <label for="roomURL"></label>
+              <input
+                type="text"
+                className="roomURL"
+                id="roomURL"
+                placeholder="Room URL"
+                pattern="^(https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.(daily\.co\/)([a-z0-9]+)+$"
+              />
+              <button className="createRoomButton">Create demo room</button>
+              <StartButton
+                className="startButton"
+                disabled={!enableStartButton}
+                onClick={() => {
+                  createCall().then((url) => startJoiningCall(url));
+                }}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
