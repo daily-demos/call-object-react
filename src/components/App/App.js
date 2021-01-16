@@ -208,25 +208,25 @@ export default function App() {
   const enableStartButton = appState === STATE_IDLE;
 
   return (
-    <div className="wrapper">
-      <div className="header">
-        <img src={dailyLogo} className="dailyLogo"></img>
-        <img src={gitHubLogo}></img>
-      </div>
-      <div className="app">
-        {showCall ? (
-          // NOTE: for an app this size, it's not obvious that using a Context
-          // is the best choice. But for larger apps with deeply-nested components
-          // that want to access call object state and bind event listeners to the
-          // call object, this can be a helpful pattern.
-          <CallObjectContext.Provider value={callObject}>
-            <Call roomUrl={roomUrl} />
-            <Tray
-              disabled={!enableCallButtons}
-              onClickLeaveCall={startLeavingCall}
-            />
-          </CallObjectContext.Provider>
-        ) : (
+    <div className="app">
+      {showCall ? (
+        // NOTE: for an app this size, it's not obvious that using a Context
+        // is the best choice. But for larger apps with deeply-nested components
+        // that want to access call object state and bind event listeners to the
+        // call object, this can be a helpful pattern.
+        <CallObjectContext.Provider value={callObject}>
+          <Call roomUrl={roomUrl} />
+          <Tray
+            disabled={!enableCallButtons}
+            onClickLeaveCall={startLeavingCall}
+          />
+        </CallObjectContext.Provider>
+      ) : (
+        <div classname="wrapper">
+          <div className="header">
+            <img src={dailyLogo} className="dailyLogo"></img>
+            <img src={gitHubLogo}></img>
+          </div>
           <div className="introInstructions">
             <h1 className="title">Daily call object React demo</h1>
             <div className="instructions">
@@ -252,8 +252,8 @@ export default function App() {
               />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
