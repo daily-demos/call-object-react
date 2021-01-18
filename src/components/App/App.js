@@ -8,30 +8,39 @@ import CallObjectContext from '../../CallObjectContext';
 import { roomUrlFromPageUrl, pageUrlFromRoomUrl } from '../../urlUtils';
 import DailyIframe from '@daily-co/daily-js';
 import { logDailyEvent } from '../../logUtils';
+import dailyLogo from '../../images/logo@2x.png';
+import gitHubLogo from '../../images/github@icons8.png';
 
 const STATE_IDLE = 'STATE_IDLE';
 const STATE_CREATING = 'STATE_CREATING';
 const STATE_JOINING = 'STATE_JOINING';
+const STATE_ROOM_READY = 'STATE_ROOM_CREATED';
 const STATE_JOINED = 'STATE_JOINED';
 const STATE_LEAVING = 'STATE_LEAVING';
 const STATE_ERROR = 'STATE_ERROR';
 
 export default function App() {
   const [appState, setAppState] = useState(STATE_IDLE);
-  const [roomUrl, setRoomUrl] = useState(null);
+  const [roomUrl, setRoomUrl] = useState('');
+  const [roomUrlFieldValue, setRoomUrlFieldValue] = useState('');
   const [callObject, setCallObject] = useState(null);
 
   /**
    * Creates a new call room.
    */
-  const createCall = useCallback(() => {
+  const createRoom = useCallback(() => {
     setAppState(STATE_CREATING);
     return api
       .createRoom()
-      .then((room) => room.url)
+      .then((room) => {
+        setRoomUrl(room.url);
+        setRoomUrlFieldValue(room.url);
+        setAppState(STATE_ROOM_READY);
+      })
       .catch((error) => {
         console.log('Error creating room', error);
         setRoomUrl(null);
+        setRoomUrlFieldValue(undefined);
         setAppState(STATE_IDLE);
       });
   }, []);
@@ -203,7 +212,7 @@ export default function App() {
    * Disabling the start button until then avoids that scenario.
    * !!!
    */
-  const enableStartButton = appState === STATE_IDLE;
+  const enableStartButton = appState === STATE_ROOM_READY;
 
   return (
     <div className="app">
@@ -220,12 +229,47 @@ export default function App() {
           />
         </CallObjectContext.Provider>
       ) : (
-        <StartButton
-          disabled={!enableStartButton}
-          onClick={() => {
-            createCall().then((url) => startJoiningCall(url));
-          }}
-        />
+        <div className="wrapper">
+          <div className="header">
+            <img src={dailyLogo} className="dailyLogo"></img>
+            <img src={gitHubLogo}></img>
+          </div>
+          <div className="introInstructions">
+            <h1 className="title">Daily call object React demo</h1>
+            <div className="instructions">
+              <p className="instructionsText">
+                To get started, enter an existing room URL or create a temporary
+                demo room
+              </p>
+              <label htmlFor="roomURL"></label>
+              <input
+                type="text"
+                className="roomURL"
+                id="roomURL"
+                placeholder="Room URL"
+                pattern="^(https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.(daily\.co\/)([a-z0-9]+)+$"
+                value={roomUrlFieldValue}
+                onChange={(event) => {
+                  setRoomUrl(event.target.value);
+                  setRoomUrlFieldValue(event.target.value);
+                  setAppState(STATE_ROOM_READY);
+                }}
+              />
+              <button
+                className="createRoomButton"
+                onClick={() => {
+                  createRoom();
+                }}
+              >
+                Create demo room
+              </button>
+              <StartButton
+                disabled={!enableStartButton}
+                onClick={() => startJoiningCall(roomUrl)}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
