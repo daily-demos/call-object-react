@@ -14,6 +14,7 @@ import gitHubLogo from '../../images/github@icons8.png';
 const STATE_IDLE = 'STATE_IDLE';
 const STATE_CREATING = 'STATE_CREATING';
 const STATE_JOINING = 'STATE_JOINING';
+const STATE_ROOM_READY = 'STATE_ROOM_CREATED';
 const STATE_JOINED = 'STATE_JOINED';
 const STATE_LEAVING = 'STATE_LEAVING';
 const STATE_ERROR = 'STATE_ERROR';
@@ -21,23 +22,27 @@ const STATE_ERROR = 'STATE_ERROR';
 export default function App() {
   const [appState, setAppState] = useState(STATE_IDLE);
   const [roomUrl, setRoomUrl] = useState('');
+  const [roomUrlFieldValue, setRoomUrlFieldValue] = useState('');
   const [callObject, setCallObject] = useState(null);
 
   /**
    * Creates a new call room.
    */
-  const createCall = useCallback(() => {
+  const createRoom = useCallback(() => {
     setAppState(STATE_CREATING);
-    return (
-      api
-        // .createRoom()
-        .then((room) => room.url)
-        .catch((error) => {
-          console.log('Error creating room', error);
-          setRoomUrl(null);
-          setAppState(STATE_IDLE);
-        })
-    );
+    return api
+      .createRoom()
+      .then((room) => {
+        setRoomUrl(room.url);
+        setRoomUrlFieldValue(room.url);
+        setAppState(STATE_ROOM_READY);
+      })
+      .catch((error) => {
+        console.log('Error creating room', error);
+        setRoomUrl(null);
+        setRoomUrlFieldValue(undefined);
+        setAppState(STATE_IDLE);
+      });
   }, []);
 
   /**
@@ -207,7 +212,7 @@ export default function App() {
    * Disabling the start button until then avoids that scenario.
    * !!!
    */
-  const enableStartButton = appState === STATE_IDLE;
+  const enableStartButton = appState === STATE_ROOM_READY;
 
   return (
     <div className="app">
@@ -243,11 +248,22 @@ export default function App() {
                 id="roomURL"
                 placeholder="Room URL"
                 pattern="^(https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.(daily\.co\/)([a-z0-9]+)+$"
-                onChange={(event) => setRoomUrl(event.target.value)}
+                value={roomUrlFieldValue}
+                onChange={(event) => {
+                  setRoomUrl(event.target.value);
+                  setRoomUrlFieldValue(event.target.value);
+                  setAppState(STATE_ROOM_READY);
+                }}
               />
-              <button className="createRoomButton">Create demo room</button>
+              <button
+                className="createRoomButton"
+                onClick={() => {
+                  createRoom();
+                }}
+              >
+                Create demo room
+              </button>
               <StartButton
-                className="startButton"
                 disabled={!enableStartButton}
                 onClick={() => startJoiningCall(roomUrl)}
               />

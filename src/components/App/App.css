@@ -2,6 +2,7 @@
   --fontFamily: GraphikRegular, 'Helvetica Neue', Sans-Serif;
   --white: #ffffff;
   --grey: #c8d1dc;
+  --lightgreen: #72cc18;
 }
 
 .app {
@@ -62,6 +63,7 @@
 }
 
 .startButton,
+.startButtonReady,
 .createRoomButton {
   padding: 8px 16px;
   margin-top: 8px;
@@ -74,4 +76,8 @@
   border-color: var(--grey);
   cursor: pointer;
   width: 250px;
+}
+
+.startButtonReady {
+  background-color: var(--lightgreen);
 }
