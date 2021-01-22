@@ -1,12 +1,9 @@
 :root {
-  --grey-lightest: #e6eaef;
   --fontFamily: GraphikRegular, 'Helvetica Neue', Sans-Serif;
 }
 
 body {
   margin: 0;
-  font-family: var(--fontFamily);
-  background-color: var(--grey-lightest);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

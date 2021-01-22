@@ -2,11 +2,14 @@
   --fontFamily: GraphikRegular, 'Helvetica Neue', Sans-Serif;
   --white: #ffffff;
   --grey: #c8d1dc;
+  --darkblue: #121a24;
   --lightgreen: #72cc18;
 }
 
 .app {
   font-family: var(--fontFamily);
+  color: var(--white);
+  background-color: var(--darkblue);
   position: absolute;
   height: 100%;
   width: 100%;
@@ -74,6 +77,7 @@
   background-color: var(--white);
   border-width: 1px;
   border-color: var(--grey);
+  color: var(--darkblue);
   cursor: pointer;
   width: 250px;
 }

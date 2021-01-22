@@ -1,7 +1,8 @@
 .chat {
   position: absolute;
-  right: 10px;
-  bottom: 75px;
+  left: 150px;
+  bottom: 0px;
+  top: 350px;
   width: 250px;
   height: calc(100% - 150px);
   background-color: #f2f2f2;
