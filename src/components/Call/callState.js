@@ -11,9 +11,8 @@
 const initialCallState = {
   callItems: {
     local: {
-      isLoading: true,
-      audioTrack: null,
-      videoTrack: null,
+      videoTrackState: null,
+      audioTrackState: null,
     },
   },
   clickAllowTimeoutFired: false,
@@ -60,7 +59,7 @@ function callReducer(callState, action) {
         clickAllowTimeoutFired: true,
       };
     case PARTICIPANTS_CHANGE:
-      const callItems = getCallItems(action.participants, callState.callItems);
+      const callItems = getCallItems(action.participants);
       return {
         ...callState,
         callItems,
@@ -78,29 +77,29 @@ function getLocalCallItem(callItems) {
   return callItems['local'];
 }
 
-function getCallItems(participants, prevCallItems) {
+function getCallItems(participants) {
   let callItems = { ...initialCallState.callItems }; // Ensure we *always* have a local participant
   for (const [id, participant] of Object.entries(participants)) {
-    // Here we assume that a participant will join with audio/video enabled.
-    // This assumption lets us show a "loading" state before we receive audio/video tracks.
-    // This may not be true for all apps, but the call object doesn't yet support distinguishing
-    // between cases where audio/video are missing because they're still loading or muted.
-    const hasLoaded = prevCallItems[id] && !prevCallItems[id].isLoading;
-    const missingTracks = !(participant.audioTrack || participant.videoTrack);
     callItems[id] = {
-      isLoading: !hasLoaded && missingTracks,
-      audioTrack: participant.audioTrack,
-      videoTrack: participant.videoTrack,
+      videoTrackState: participant.tracks.video,
+      audioTrackState: participant.tracks.audio,
     };
-    if (participant.screenVideoTrack || participant.screenAudioTrack) {
+    if (shouldIncludeScreenCallItem(participant)) {
       callItems[id + '-screen'] = {
-        isLoading: false,
-        videoTrack: participant.screenVideoTrack,
-        audioTrack: participant.screenAudioTrack,
+        videoTrackState: participant.tracks.screenVideo,
+        audioTrackState: participant.tracks.screenAudio,
       };
     }
   }
   return callItems;
+}
+
+function shouldIncludeScreenCallItem(participant) {
+  const trackStatesForInclusion = ['loading', 'playable', 'interrupted'];
+  return (
+    trackStatesForInclusion.includes(participant.tracks.screenVideo.state) ||
+    trackStatesForInclusion.includes(participant.tracks.screenAudio.state)
+  );
 }
 
 // --- Derived data ---

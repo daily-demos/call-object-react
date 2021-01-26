@@ -140,11 +140,11 @@ export default function Call() {
       const tile = (
         <Tile
           key={id}
-          videoTrack={callItem.videoTrack}
-          audioTrack={callItem.audioTrack}
+          videoTrackState={callItem.videoTrackState}
+          audioTrackState={callItem.audioTrackState}
           isLocalPerson={isLocal(id)}
           isLarge={isLarge}
-          isLoading={callItem.isLoading}
+          disableCornerMessage={isScreenShare(id)}
           onClick={
             isLocal(id)
               ? null
