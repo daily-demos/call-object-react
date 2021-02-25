@@ -33,6 +33,7 @@ export default function Call() {
   const toggleScreenShare = () => setScreenSharing(!isScreenSharing);
   const [largeTiles, setLargeTiles] = useState([]);
   const [smallTiles, setSmallTiles] = useState([]);
+  const [participants, setParticipants] = useState([]);
 
   /**
    * Start listening for participant changes, when the callObject is set.
@@ -78,9 +79,14 @@ export default function Call() {
   //   }
   // });
 
+  // Update participant list
+  // When participants updates
+  // Have addVideoTrack as useEffect that formats into large and small tiles
+
   const addVideoTrack = useCallback(
     (event) => {
-      console.log(`Video display comin' up!`);
+      console.log(`🎥 Video display comin' up!`);
+      console.log(event);
       const trackId = event.track.id;
       const isLocal = event.participant.local;
       const isSharedScreen = trackId === screenShareTrackId;
@@ -88,7 +94,6 @@ export default function Call() {
       console.log(`The track that started is large: ${isLarge}`);
 
       const tile = {
-        key: trackId,
         videoTrackState: event.participant.tracks.video,
         audioTrackState: event.participant.tracks.audio,
         isLocalPerson: isLocal,
@@ -101,22 +106,22 @@ export default function Call() {
         //       },
       };
       if (isLarge) {
+        console.log([...largeTiles, tile]);
         setLargeTiles([...largeTiles, tile]);
       } else {
         setSmallTiles([...smallTiles, tile]);
       }
     },
-    [smallTiles, largeTiles, callObject]
+    [smallTiles, largeTiles]
   );
 
   const displayLargeTiles = useMemo(() => {
     const participantTracks = [...largeTiles];
-    if (Object.entries(largeTiles).length === 0) return;
     return (
       <div className="large-tiles">
         {participantTracks?.map((p, i) => (
           <Tile
-            key={i}
+            key={`large-${i}`}
             videoTrackState={p.videoTrackState}
             audioTrackState={p.audioTrackState}
             isLocalPerson={p.isLocal}
@@ -135,7 +140,7 @@ export default function Call() {
       <div className="small-tiles">
         {participantTracks?.map((p, i) => (
           <Tile
-            key={i}
+            key={`small-${i}`}
             videoTrackState={p.videoTrackState}
             audioTrackState={p.audioTrackState}
             isLocalPerson={p.isLocal}
@@ -148,25 +153,28 @@ export default function Call() {
     );
   }, [smallTiles]);
 
+  useEffect(() => {
+    console.log(`Is participants changed??? ${participants}`);
+    console.log(participants);
+  }, [participants]);
+
   /**
    * When a  participant is updated, update their tracks
    */
-  // useEffect(() => {
-  //   if (!callObject) return;
+  useEffect(() => {
+    if (!callObject) return;
 
-  //   function handleParticipantUpdate(event) {
-  //     console.log('UPDATE UPDATE UPDATE');
-  //     console.log(event);
-  //     if (event.participant.tracks.video.track) {
-  //       displayVideo(event);
-  //     }
-  //   }
-  //   callObject.on('participant-updated', handleParticipantUpdate);
+    function handleParticipantUpdate(event) {
+      console.log('UPDATE UPDATE UPDATE');
+      console.log(event);
+      setParticipants([event.participant]);
+    }
+    callObject.on('participant-updated', handleParticipantUpdate);
 
-  //   return function cleanup() {
-  //     callObject.off('participant-updated', handleParticipantUpdate);
-  //   };
-  // }, [callObject, displayVideo]);
+    return function cleanup() {
+      callObject.off('participant-updated', handleParticipantUpdate);
+    };
+  }, [callObject, addVideoTrack]);
 
   /**
    * When a track starts, display a participant's video or audio
@@ -175,13 +183,14 @@ export default function Call() {
     if (!callObject) return;
 
     function handleTrackStarted(event) {
-      // logDailyEvent(event);
+      console.log(`🛤🛤🛤🛤`);
+      console.log(event);
       let trackType = event.track.kind;
       let trackId = event.track.id;
       let screenVideoTrackState = event.participant.tracks.screenVideo.track;
 
       if (typeof screenVideoTrackState === 'undefined') {
-        if (trackType === 'video') {
+        if (trackType) {
           addVideoTrack(event);
         } else if (trackType === 'audio') {
           console.log(`Audio up next!`);
