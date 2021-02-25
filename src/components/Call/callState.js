@@ -154,5 +154,6 @@ export {
   isLocal,
   isScreenShare,
   containsScreenShare,
+  shouldIncludeScreenCallItem,
   getMessage,
 };

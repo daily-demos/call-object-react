@@ -4,6 +4,7 @@ import React, {
   useReducer,
   useState,
   useCallback,
+  useMemo,
 } from 'react';
 import './Call.css';
 import Tile from '../Tile/Tile';
@@ -36,46 +37,136 @@ export default function Call() {
   /**
    * Start listening for participant changes, when the callObject is set.
    */
-  useEffect(() => {
-    if (!callObject) return;
+  // useEffect(() => {
+  //   if (!callObject) return;
 
-    const events = [
-      'participant-joined',
-      'participant-updated',
-      'participant-left',
-    ];
+  //   const events = [
+  //     'participant-joined',
+  //     'participant-updated',
+  //     'participant-left',
+  //   ];
 
-    function handleNewParticipantsState(event) {
-      event && logDailyEvent(event);
-      dispatch({
-        type: PARTICIPANTS_CHANGE,
-        participants: callObject.participants(),
-      });
-    }
+  //   function handleNewParticipantsState(event) {
+  //     event && logDailyEvent(event);
+  //     dispatch({
+  //       type: PARTICIPANTS_CHANGE,
+  //       participants: callObject.participants(),
+  //     });
+  //   }
 
-    // Use initial state
-    handleNewParticipantsState();
+  //   // Use initial state
+  //   handleNewParticipantsState();
 
-    // Listen for changes in state
-    for (const event of events) {
-      callObject.on(event, handleNewParticipantsState);
-    }
+  //   // Listen for changes in state
+  //   for (const event of events) {
+  //     callObject.on(event, handleNewParticipantsState);
+  //   }
 
-    // Stop listening for changes in state
-    return function cleanup() {
-      for (const event of events) {
-        callObject.off(event, handleNewParticipantsState);
-      }
-    };
-  }, [callObject]);
+  //   // Stop listening for changes in state
+  //   return function cleanup() {
+  //     for (const event of events) {
+  //       callObject.off(event, handleNewParticipantsState);
+  //     }
+  //   };
+  // }, [callObject]);
 
   // Validate screenshare state changes
-  useEffect(() => {
-    if (isScreenSharing) {
-      console.log(`New screen sharing state is: ${isScreenSharing}`);
-      console.log(`The track that is being shared is: ${screenShareTrackId}`);
-    }
-  });
+  // useEffect(() => {
+  //   if (isScreenSharing) {
+  //     console.log(`New screen sharing state is: ${isScreenSharing}`);
+  //     console.log(`The track that is being shared is: ${screenShareTrackId}`);
+  //   }
+  // });
+
+  const addVideoTrack = useCallback(
+    (event) => {
+      console.log(`Video display comin' up!`);
+      const trackId = event.track.id;
+      const isLocal = event.participant.local;
+      const isSharedScreen = trackId === screenShareTrackId;
+      const isLarge = isSharedScreen || (!isLocal && !isScreenSharing);
+      console.log(`The track that started is large: ${isLarge}`);
+
+      const tile = {
+        key: trackId,
+        videoTrackState: event.participant.tracks.video,
+        audioTrackState: event.participant.tracks.audio,
+        isLocalPerson: isLocal,
+        isLarge: isLarge,
+        disableCornerMessage: isSharedScreen,
+        //   onClick: isLocal
+        //     ? null
+        //     : () => {
+        //         sendHello(event.participant.session_id);
+        //       },
+      };
+      if (isLarge) {
+        setLargeTiles([...largeTiles, tile]);
+      } else {
+        setSmallTiles([...smallTiles, tile]);
+      }
+    },
+    [smallTiles, largeTiles, callObject]
+  );
+
+  const displayLargeTiles = useMemo(() => {
+    const participantTracks = [...largeTiles];
+    if (Object.entries(largeTiles).length === 0) return;
+    return (
+      <div className="large-tiles">
+        {participantTracks?.map((p, i) => (
+          <Tile
+            key={i}
+            videoTrackState={p.videoTrackState}
+            audioTrackState={p.audioTrackState}
+            isLocalPerson={p.isLocal}
+            isLarge={p.isLarge}
+            disableCornerMessage={p.disableCornerMessage}
+            onClick={p.onClick}
+          />
+        ))}
+      </div>
+    );
+  }, [largeTiles]);
+
+  const displaySmallTiles = useMemo(() => {
+    const participantTracks = [...smallTiles];
+    return (
+      <div className="small-tiles">
+        {participantTracks?.map((p, i) => (
+          <Tile
+            key={i}
+            videoTrackState={p.videoTrackState}
+            audioTrackState={p.audioTrackState}
+            isLocalPerson={p.isLocal}
+            isLarge={p.isLarge}
+            disableCornerMessage={p.disableCornerMessage}
+            onClick={p.onClick}
+          />
+        ))}
+      </div>
+    );
+  }, [smallTiles]);
+
+  /**
+   * When a  participant is updated, update their tracks
+   */
+  // useEffect(() => {
+  //   if (!callObject) return;
+
+  //   function handleParticipantUpdate(event) {
+  //     console.log('UPDATE UPDATE UPDATE');
+  //     console.log(event);
+  //     if (event.participant.tracks.video.track) {
+  //       displayVideo(event);
+  //     }
+  //   }
+  //   callObject.on('participant-updated', handleParticipantUpdate);
+
+  //   return function cleanup() {
+  //     callObject.off('participant-updated', handleParticipantUpdate);
+  //   };
+  // }, [callObject, displayVideo]);
 
   /**
    * When a track starts, display a participant's video or audio
@@ -85,24 +176,21 @@ export default function Call() {
 
     function handleTrackStarted(event) {
       // logDailyEvent(event);
-      console.log(`track started: ${event}`);
       let trackType = event.track.kind;
       let trackId = event.track.id;
       let screenVideoTrackState = event.participant.tracks.screenVideo.track;
-      console.log(`This is the track that started: ${trackId}`);
 
       if (typeof screenVideoTrackState === 'undefined') {
         if (trackType === 'video') {
-          displayVideo(event);
-        }
-        if (trackType === 'audio') {
-          playAudio(event);
+          addVideoTrack(event);
+        } else if (trackType === 'audio') {
+          console.log(`Audio up next!`);
         }
       } else {
         console.log(`SCREENSHARE started SCREENSHARE started`);
         setScreenShareTrackId(trackId);
         setScreenSharing(!isScreenSharing);
-        displayVideo(event);
+        addVideoTrack(event);
       }
     }
 
@@ -115,8 +203,9 @@ export default function Call() {
     callObject,
     isScreenSharing,
     screenShareTrackId,
-    toggleScreenShare,
-    displayVideo,
+    largeTiles,
+    smallTiles,
+    addVideoTrack,
   ]);
 
   /**
@@ -217,95 +306,31 @@ export default function Call() {
     },
     [callObject]
   );
-
-  function displayVideo(event) {
-    console.log(`Video display comin' up!`);
-    console.log(event);
-    const trackId = event.track.id;
-    const isLocal = event.participant.local;
-    const isSharedScreen = trackId === screenShareTrackId;
-    const isLarge = isSharedScreen || (!isLocal && !isScreenSharing);
-    console.log(`The track that started is large: ${isLarge}`);
-
-    const tile = (
-      <Tile
-        key={trackId}
-        videoTrackState={event.participant.tracks.video}
-        audioTrackState={event.participant.tracks.audio}
-        isLocalPerson={isLocal}
-        isLarge={isLarge}
-        disableCornerMessage={isSharedScreen}
-        onClick={
-          isLocal
-            ? null
-            : () => {
-                sendHello(event.participant.session_id);
-              }
-        }
-      />
-    );
-
-    if (isLarge) {
-      setLargeTiles(largeTiles.push(tile));
-    } else {
-      setSmallTiles(smallTiles.push(tile));
-    }
-  }
-
-  function playAudio(event) {
-    console.log(`Audio coming your way!`);
-    console.log(event);
-  }
-
-  // function getTiles() {
-  //   let largeTiles = [];
-  //   let smallTiles = [];
-  //   Object.entries(callState.callItems).forEach(([id, callItem]) => {
-  //     const isLarge =
-  //       isScreenShare(id) ||
-  //       (!isLocal(id) && !containsScreenShare(callState.callItems));
-  //     const tile = (
-  //       <Tile
-  //         key={id}
-  //         videoTrackState={callItem.videoTrackState}
-  //         audioTrackState={callItem.audioTrackState}
-  //         isLocalPerson={isLocal(id)}
-  //         isLarge={isLarge}
-  //         disableCornerMessage={isScreenShare(id)}
-  //         onClick={
-  //           isLocal(id)
-  //             ? null
-  //             : () => {
-  //                 sendHello(id);
-  //               }
-  //         }
-  //       />
-  //     );
-  //     if (isLarge) {
-  //       largeTiles.push(tile);
-  //     } else {
-  //       smallTiles.push(tile);
-  //     }
-  //   });
-  //   return [largeTiles, smallTiles];
-  // }
-
-  // const [largeTiles, smallTiles] = getTiles();
   const message = getMessage(callState);
+
+  /**
+   * Display a join link to share if there is only one call participant
+   */
+  function displayJoinLink() {
+    let header = null;
+    let detail = null;
+
+    if (largeTiles.length === 0) {
+      header = "Copy and share this page's URL to invite others";
+      detail = window.location.href;
+    }
+
+    return { header, detail };
+  }
+  const joinLink = displayJoinLink();
   return (
     <div className="call">
-      <div className="large-tiles">
-        {
-          !message
-            ? largeTiles
-            : null /* Avoid showing large tiles to make room for the message */
-        }
-      </div>
-      <div className="small-tiles">{smallTiles}</div>
+      {displayLargeTiles}
+      {displaySmallTiles}
       {message && (
         <CallMessage
-          header={message.header}
-          detail={message.detail}
+          header={joinLink.header}
+          detail={joinLink.detail}
           isError={message.isError}
         />
       )}
