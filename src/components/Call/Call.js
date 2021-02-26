@@ -87,17 +87,16 @@ export default function Call() {
     (event) => {
       console.log(`🎥 Video display comin' up!`);
       console.log(event);
-      const trackId = event.track.id;
-      const isLocal = event.participant.local;
-      const isSharedScreen = trackId === screenShareTrackId;
-      const isLarge = isSharedScreen || (!isLocal && !isScreenSharing);
+      const isSharedScreen = event?.track?.id === screenShareTrackId;
+      const isLarge =
+        isSharedScreen || (!event?.participant?.local && !isScreenSharing);
       console.log(`The track that started is large: ${isLarge}`);
-
       const tile = {
-        videoTrackState: event.participant.tracks.video,
-        audioTrackState: event.participant.tracks.audio,
-        isLocalPerson: isLocal,
-        isLarge: isLarge,
+        id: event?.participant?.session_id,
+        videoTrackState: event?.participant?.tracks?.video,
+        audioTrackState: event?.participant?.tracks?.audio,
+        isLocalPerson: event?.participant?.local,
+        isLarge,
         disableCornerMessage: isSharedScreen,
         //   onClick: isLocal
         //     ? null
@@ -105,14 +104,28 @@ export default function Call() {
         //         sendHello(event.participant.session_id);
         //       },
       };
+      // Note to Kimberlee: this could be a reduce function too but I went simple
+      function addOrReplace(arr, obj) {
+        const index = arr?.findIndex((e) => e?.id === obj?.id);
+        if (index === -1) {
+          arr.push(obj);
+        } else {
+          arr[index] = obj;
+        }
+        return arr;
+      }
+      console.log(callObject.participants());
       if (isLarge) {
-        console.log([...largeTiles, tile]);
-        setLargeTiles([...largeTiles, tile]);
+        console.log(largeTiles);
+        console.log(tile);
+        const updatedLarge = addOrReplace(largeTiles.slice(), tile);
+        setLargeTiles(updatedLarge);
       } else {
-        setSmallTiles([...smallTiles, tile]);
+        const updatedSmall = addOrReplace(smallTiles.slice(), tile);
+        setSmallTiles(updatedSmall);
       }
     },
-    [smallTiles, largeTiles]
+    [smallTiles, largeTiles, callObject]
   );
 
   const displayLargeTiles = useMemo(() => {
@@ -135,6 +148,7 @@ export default function Call() {
   }, [largeTiles]);
 
   const displaySmallTiles = useMemo(() => {
+    console.log(smallTiles);
     const participantTracks = [...smallTiles];
     return (
       <div className="small-tiles">
@@ -162,12 +176,13 @@ export default function Call() {
    * When a  participant is updated, update their tracks
    */
   useEffect(() => {
+    console.log('something happened');
     if (!callObject) return;
 
     function handleParticipantUpdate(event) {
       console.log('UPDATE UPDATE UPDATE');
       console.log(event);
-      setParticipants([event.participant]);
+      addVideoTrack(event);
     }
     callObject.on('participant-updated', handleParticipantUpdate);
 
