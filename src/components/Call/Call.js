@@ -1,7 +1,7 @@
 import React, {
   useEffect,
   useContext,
-  useReducer,
+  // useReducer,
   useState,
   useCallback,
   useMemo,
@@ -10,30 +10,28 @@ import './Call.css';
 import Tile from '../Tile/Tile';
 import CallObjectContext from '../../CallObjectContext';
 import CallMessage from '../CallMessage/CallMessage';
-import {
-  initialCallState,
-  CLICK_ALLOW_TIMEOUT,
-  PARTICIPANTS_CHANGE,
-  CAM_OR_MIC_ERROR,
-  FATAL_ERROR,
-  callReducer,
-  // isLocal,
-  // isScreenShare,
-  // containsScreenShare,
-  // shouldIncludeScreenCallItem,
-  getMessage,
-} from './callState';
+// import {
+//   initialCallState,
+//   CLICK_ALLOW_TIMEOUT,
+//   PARTICIPANTS_CHANGE,
+//   CAM_OR_MIC_ERROR,
+//   FATAL_ERROR,
+//   callReducer,
+//   isLocal,
+//   isScreenShare,
+//   containsScreenShare,
+//   shouldIncludeScreenCallItem,
+//   getMessage,
+// } from './callState';
 import { logDailyEvent } from '../../logUtils';
 
 export default function Call() {
   const callObject = useContext(CallObjectContext);
-  const [callState, dispatch] = useReducer(callReducer, initialCallState);
+  // const [callState, dispatch] = useReducer(callReducer, initialCallState);
   const [isScreenSharing, setScreenSharing] = useState(false);
   const [screenShareTrackId, setScreenShareTrackId] = useState('');
-  const toggleScreenShare = () => setScreenSharing(!isScreenSharing);
-  const [largeTiles, setLargeTiles] = useState([]);
-  const [smallTiles, setSmallTiles] = useState([]);
-  const [participants, setParticipants] = useState([]);
+  const [screenShareEvent, setScreenShareEvent] = useState({});
+  const [tiles, setTiles] = useState([]);
 
   /**
    * Start listening for participant changes, when the callObject is set.
@@ -41,14 +39,14 @@ export default function Call() {
   // useEffect(() => {
   //   if (!callObject) return;
 
-  //   const events = [
-  //     'participant-joined',
-  //     'participant-updated',
-  //     'participant-left',
-  //   ];
+  // const es = [
+  //   'participant-joined',
+  //   'participant-updated',
+  //   'participant-left',
+  // ];
 
-  //   function handleNewParticipantsState(event) {
-  //     event && logDailyEvent(event);
+  //   function handleNewParticipantsState(e) {
+  //     e && logDailyEvent(e);
   //     dispatch({
   //       type: PARTICIPANTS_CHANGE,
   //       participants: callObject.participants(),
@@ -59,53 +57,47 @@ export default function Call() {
   //   handleNewParticipantsState();
 
   //   // Listen for changes in state
-  //   for (const event of events) {
-  //     callObject.on(event, handleNewParticipantsState);
+  //   for (const e of es) {
+  //     callObject.on(e, handleNewParticipantsState);
   //   }
 
   //   // Stop listening for changes in state
   //   return function cleanup() {
-  //     for (const event of events) {
-  //       callObject.off(event, handleNewParticipantsState);
+  //     for (const e of es) {
+  //       callObject.off(e, handleNewParticipantsState);
   //     }
   //   };
   // }, [callObject]);
 
-  // Validate screenshare state changes
-  // useEffect(() => {
-  //   if (isScreenSharing) {
-  //     console.log(`New screen sharing state is: ${isScreenSharing}`);
-  //     console.log(`The track that is being shared is: ${screenShareTrackId}`);
-  //   }
-  // });
+  /**
+   * Add or update a participant's "tile" details
+   */
+  const addOrUpdateTile = useCallback(
+    (e) => {
+      logDailyEvent(e);
 
-  // Update participant list
-  // When participants updates
-  // Have addVideoTrack as useEffect that formats into large and small tiles
-
-  const addVideoTrack = useCallback(
-    (event) => {
-      console.log(`🎥 Video display comin' up!`);
-      console.log(event);
-      const isSharedScreen = event?.track?.id === screenShareTrackId;
+      const isSharedScreen = e?.track?.id === screenShareTrackId;
       const isLarge =
-        isSharedScreen || (!event?.participant?.local && !isScreenSharing);
-      console.log(`The track that started is large: ${isLarge}`);
+        isSharedScreen || (!e?.participant?.local && !isScreenSharing);
+      const isLocalPerson = e?.participant?.local;
+
+      console.log(`The trackId in addTile is ${e?.track?.id}`);
+      console.log(`The screenshare track in state: ${screenShareTrackId}`);
+      console.log(`It is a shared screen: ${isSharedScreen}`);
+      console.log(`The shared screen isLarge ${isLarge}`);
+
       const tile = {
-        id: event?.participant?.session_id,
-        videoTrackState: event?.participant?.tracks?.video,
-        audioTrackState: event?.participant?.tracks?.audio,
-        isLocalPerson: event?.participant?.local,
+        id: e?.participant?.session_id,
+        videoTrackState: isSharedScreen
+          ? e?.participant?.tracks?.screenVideo
+          : e?.participant?.tracks?.video,
+        audioTrackState: e?.participant?.tracks?.audio,
+        isLocalPerson,
         isLarge,
         disableCornerMessage: isSharedScreen,
-        //   onClick: isLocal
-        //     ? null
-        //     : () => {
-        //         sendHello(event.participant.session_id);
-        //       },
       };
-      // Note to Kimberlee: this could be a reduce function too but I went simple
-      function addOrReplace(arr, obj) {
+
+      function addOrUpdate(arr, obj) {
         const index = arr?.findIndex((e) => e?.id === obj?.id);
         if (index === -1) {
           arr.push(obj);
@@ -114,107 +106,88 @@ export default function Call() {
         }
         return arr;
       }
-      console.log(callObject.participants());
-      if (isLarge) {
-        console.log(largeTiles);
-        console.log(tile);
-        const updatedLarge = addOrReplace(largeTiles.slice(), tile);
-        setLargeTiles(updatedLarge);
-      } else {
-        const updatedSmall = addOrReplace(smallTiles.slice(), tile);
-        setSmallTiles(updatedSmall);
-      }
+
+      const updatedTiles = addOrUpdate(tiles.slice(), tile);
+      setTiles(updatedTiles);
     },
-    [smallTiles, largeTiles, callObject]
+    [tiles, screenShareTrackId, isScreenSharing]
   );
 
-  const displayLargeTiles = useMemo(() => {
-    const participantTracks = [...largeTiles];
-    return (
-      <div className="large-tiles">
-        {participantTracks?.map((p, i) => (
-          <Tile
-            key={`large-${i}`}
-            videoTrackState={p.videoTrackState}
-            audioTrackState={p.audioTrackState}
-            isLocalPerson={p.isLocal}
-            isLarge={p.isLarge}
-            disableCornerMessage={p.disableCornerMessage}
-            onClick={p.onClick}
-          />
-        ))}
-      </div>
-    );
-  }, [largeTiles]);
-
-  const displaySmallTiles = useMemo(() => {
-    console.log(smallTiles);
-    const participantTracks = [...smallTiles];
-    return (
-      <div className="small-tiles">
-        {participantTracks?.map((p, i) => (
-          <Tile
-            key={`small-${i}`}
-            videoTrackState={p.videoTrackState}
-            audioTrackState={p.audioTrackState}
-            isLocalPerson={p.isLocal}
-            isLarge={p.isLarge}
-            disableCornerMessage={p.disableCornerMessage}
-            onClick={p.onClick}
-          />
-        ))}
-      </div>
-    );
-  }, [smallTiles]);
+  /**
+   * Remove a participant's tile details from state
+   */
+  const removeTile = useCallback(
+    (e) => {
+      logDailyEvent(e);
+      const remainingTiles = tiles.filter(
+        (t) => t.id !== e?.participant?.session_id
+      );
+      setTiles(remainingTiles);
+    },
+    [tiles]
+  );
 
   useEffect(() => {
-    console.log(`Is participants changed??? ${participants}`);
-    console.log(participants);
-  }, [participants]);
+    console.log(`New screen sharing state is: ${isScreenSharing}`);
+    console.log(`The track that is being shared is: ${screenShareTrackId}`);
+
+    // addOrUpdateTile(screenShareEvent);
+  }, [
+    isScreenSharing,
+    // tiles,
+    addOrUpdateTile,
+    // screenShareEvent,
+    screenShareTrackId,
+  ]);
 
   /**
-   * When a  participant is updated, update their tracks
+   * When the call object is set, listen and react to participant updates
    */
   useEffect(() => {
-    console.log('something happened');
     if (!callObject) return;
 
-    function handleParticipantUpdate(event) {
-      console.log('UPDATE UPDATE UPDATE');
-      console.log(event);
-      addVideoTrack(event);
+    function handleParticipantUpdate(e) {
+      logDailyEvent(e);
+      addOrUpdateTile(e);
     }
+
     callObject.on('participant-updated', handleParticipantUpdate);
 
     return function cleanup() {
       callObject.off('participant-updated', handleParticipantUpdate);
     };
-  }, [callObject, addVideoTrack]);
+  }, [callObject, addOrUpdateTile]);
 
   /**
-   * When a track starts, display a participant's video or audio
+   * When the call obect is set, listen for tracks starting and get "tile" details from the event object
+   * NOTE: We'll pass audio and video at once in this app, via event.participant.tracks, because our "tile" component renders both. However, it's possible, and sometimes preferred, to pass audio separately.
    */
   useEffect(() => {
     if (!callObject) return;
 
-    function handleTrackStarted(event) {
-      console.log(`🛤🛤🛤🛤`);
-      console.log(event);
-      let trackType = event.track.kind;
-      let trackId = event.track.id;
-      let screenVideoTrackState = event.participant.tracks.screenVideo.track;
+    function handleTrackStarted(e) {
+      let trackType = e.track.kind;
+      let trackId = e.track.id;
+      let screenVideoTrackState = e.participant.tracks.screenVideo.track;
+      console.log(e);
 
       if (typeof screenVideoTrackState === 'undefined') {
-        if (trackType) {
-          addVideoTrack(event);
+        if (trackType === 'video') {
+          addOrUpdateTile(e);
         } else if (trackType === 'audio') {
-          console.log(`Audio up next!`);
+          console.log(
+            `We'll pass audio when we pass video, because one tile holds both tracks.`
+          );
         }
       } else {
-        console.log(`SCREENSHARE started SCREENSHARE started`);
-        setScreenShareTrackId(trackId);
-        setScreenSharing(!isScreenSharing);
-        addVideoTrack(event);
+        if (trackType === 'video') {
+          console.log(`A screenshare is starting!`);
+          setScreenShareTrackId(trackId);
+          setScreenSharing(!isScreenSharing);
+          setScreenShareEvent(e);
+        } else {
+          console.log(`Passing screenAudio when the video starts.`);
+        }
       }
     }
 
@@ -223,40 +196,28 @@ export default function Call() {
     return function cleanup() {
       callObject.off('track-started', handleTrackStarted);
     };
-  }, [
-    callObject,
-    isScreenSharing,
-    screenShareTrackId,
-    largeTiles,
-    smallTiles,
-    addVideoTrack,
-  ]);
+  }, [callObject, isScreenSharing, screenShareTrackId, tiles, addOrUpdateTile]);
 
   /**
-   * When a track stops, destroy the track
+   * PLACEHOLDER for track-stopped on screenshare
+   */
+
+  /**
+   * When the call object is set, listen for participants leaving a call and remove their tracks
    */
   useEffect(() => {
     if (!callObject) return;
 
-    function handleTrackStopped(event) {
-      logDailyEvent(event);
-      console.log(event);
-      let trackId = event.track.id;
-      console.log(`This is the track that STOPPED: ${trackId}`);
-      if (trackId === screenShareTrackId) {
-        console.log(`STOP THE SCREENSHARE`);
-        toggleScreenShare();
-      }
-      // If track id is in large tiles, remove from large tiles
-      // If in small tiles, remove from small tiles
+    function handleParticipantLeft(e) {
+      removeTile(e);
     }
 
-    callObject.on('track-stopped', handleTrackStopped);
+    callObject.on('participant-left', handleParticipantLeft);
 
     return function cleanup() {
-      callObject.off('track-stopped', handleTrackStopped);
+      callObject.off('participant-left', handleParticipantLeft);
     };
-  }, [callObject, isScreenSharing]);
+  }, [callObject, isScreenSharing, removeTile]);
 
   /**
    * Start listening for call errors, when the callObject is set.
@@ -264,18 +225,13 @@ export default function Call() {
   useEffect(() => {
     if (!callObject) return;
 
-    function handleCameraErrorEvent(event) {
-      logDailyEvent(event);
-      dispatch({
-        type: CAM_OR_MIC_ERROR,
-        message:
-          (event && event.errorMsg && event.errorMsg.errorMsg) || 'Unknown',
-      });
+    function handleCameraErrorEvent(e) {
+      logDailyEvent(e);
+      getMessage(e);
     }
 
     // We're making an assumption here: there is no camera error when callObject
     // is first assigned.
-
     callObject.on('camera-error', handleCameraErrorEvent);
 
     return function cleanup() {
@@ -291,15 +247,11 @@ export default function Call() {
 
     function handleErrorEvent(e) {
       logDailyEvent(e);
-      dispatch({
-        type: FATAL_ERROR,
-        message: (e && e.errorMsg) || 'Unknown',
-      });
+      getMessage(e);
     }
 
     // We're making an assumption here: there is no error when callObject is
     // first assigned.
-
     callObject.on('error', handleErrorEvent);
 
     return function cleanup() {
@@ -310,15 +262,15 @@ export default function Call() {
   /**
    * Start a timer to show the "click allow" message, when the component mounts.
    */
-  useEffect(() => {
-    const t = setTimeout(() => {
-      dispatch({ type: CLICK_ALLOW_TIMEOUT });
-    }, 2500);
+  // useEffect(() => {
+  //   const t = setTimeout(() => {
+  //     toggleShouldShowClickAllow();
+  //   }, 2500);
 
-    return function cleanup() {
-      clearTimeout(t);
-    };
-  }, []);
+  //   return function cleanup() {
+  //     clearTimeout(t);
+  //   };
+  // }, [shouldShowClickAllow, toggleShouldShowClickAllow]);
 
   /**
    * Send an app message to the remote participant whose tile was clicked on.
@@ -330,31 +282,87 @@ export default function Call() {
     },
     [callObject]
   );
-  const message = getMessage(callState);
+
+  const displayLargeTiles = useMemo(() => {
+    const participantTracks = [...tiles];
+    const largeTiles = participantTracks.filter((t) => t.isLarge === true);
+    return (
+      <div className="large-tiles">
+        {largeTiles?.map((t, i) => (
+          <Tile
+            key={`large-${i}`}
+            videoTrackState={t.videoTrackState}
+            audioTrackState={t.audioTrackState}
+            isLocalPerson={t.isLocal}
+            isLarge={t.isLarge}
+            disableCornerMessage={t.disableCornerMessage}
+            onClick={
+              t.isLocalPerson
+                ? null
+                : () => {
+                    sendHello(t.id);
+                  }
+            }
+          />
+        ))}
+      </div>
+    );
+  }, [tiles, sendHello]);
+
+  const displaySmallTiles = useMemo(() => {
+    const participantTracks = [...tiles];
+    const smallTiles = participantTracks.filter((t) => t.isLarge === false);
+    return (
+      <div className="small-tiles">
+        {smallTiles?.map((t, i) => (
+          <Tile
+            key={`small-${i}`}
+            videoTrackState={t.videoTrackState}
+            audioTrackState={t.audioTrackState}
+            isLocalPerson={t.isLocal}
+            isLarge={t.isLarge}
+            disableCornerMessage={t.disableCornerMessage}
+            onClick={t.onClick}
+          />
+        ))}
+      </div>
+    );
+  }, [tiles]);
 
   /**
-   * Display a join link to share if there is only one call participant
+   * Display a message
    */
-  function displayJoinLink() {
+  function getMessage(e) {
     let header = null;
     let detail = null;
+    let isError = false;
 
-    if (largeTiles.length === 0) {
-      header = "Copy and share this page's URL to invite others";
-      detail = window.location.href;
+    if (!e) {
+      if (tiles.length <= 1) {
+        header = "Copy and share this page's URL to invite others";
+        detail = window.location.href;
+      }
+    } else if (e.action === 'error') {
+      header = `Fatal error ${(e && e.errorMsg) || 'Unknown'}`;
+    } else if (e.action === 'camera-error') {
+      header = `Camera or mic access error: ${
+        (e && e.errorMsg && e.errorMsg.errorMsg) || 'Unknown'
+      }`;
+      detail =
+        'See https://help.daily.co/en/articles/2528184-unblock-camera-mic-access-on-a-computer to troubleshoot.';
+      isError = true;
     }
-
-    return { header, detail };
+    return header || detail ? { header, detail, isError } : null;
   }
-  const joinLink = displayJoinLink();
+  const message = getMessage();
   return (
     <div className="call">
       {displayLargeTiles}
       {displaySmallTiles}
       {message && (
         <CallMessage
-          header={joinLink.header}
-          detail={joinLink.detail}
+          header={message.header}
+          detail={message.detail}
           isError={message.isError}
         />
       )}
