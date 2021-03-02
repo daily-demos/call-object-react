@@ -30,6 +30,8 @@ export default function Call() {
   // const [callState, dispatch] = useReducer(callReducer, initialCallState);
   const [isScreenSharing, setScreenSharing] = useState(false);
   const [screenShareTrackId, setScreenShareTrackId] = useState('');
+  // Set a flag for screenshare started
+  const [screenShareStarted, setScreenShareStarted] = useState(false);
   const [screenShareEvent, setScreenShareEvent] = useState({});
   const [tiles, setTiles] = useState([]);
 
@@ -87,7 +89,9 @@ export default function Call() {
       console.log(`The shared screen isLarge ${isLarge}`);
 
       const tile = {
-        id: e?.participant?.session_id,
+        id: !isSharedScreen
+          ? e?.participant?.session_id
+          : `${e?.participant?.session_id}-screen`,
         videoTrackState: isSharedScreen
           ? e?.participant?.tracks?.screenVideo
           : e?.participant?.tracks?.video,
@@ -101,6 +105,7 @@ export default function Call() {
         const index = arr?.findIndex((e) => e?.id === obj?.id);
         if (index === -1) {
           arr.push(obj);
+          console.log(`PUSH PUSH PUSH`);
         } else {
           arr[index] = obj;
         }
@@ -130,14 +135,18 @@ export default function Call() {
   useEffect(() => {
     console.log(`New screen sharing state is: ${isScreenSharing}`);
     console.log(`The track that is being shared is: ${screenShareTrackId}`);
-
-    // addOrUpdateTile(screenShareEvent);
+    console.log(screenShareEvent);
+    if (isScreenSharing && screenShareStarted && screenShareEvent) {
+      console.log('Doing a thing just once.');
+      addOrUpdateTile(screenShareEvent);
+      setScreenShareStarted(!screenShareStarted);
+    }
   }, [
     isScreenSharing,
-    // tiles,
     addOrUpdateTile,
-    // screenShareEvent,
+    screenShareEvent,
     screenShareTrackId,
+    screenShareStarted,
   ]);
 
   /**
@@ -166,9 +175,9 @@ export default function Call() {
     if (!callObject) return;
 
     function handleTrackStarted(e) {
-      let trackType = e.track.kind;
-      let trackId = e.track.id;
-      let screenVideoTrackState = e.participant.tracks.screenVideo.track;
+      let trackType = e?.track?.kind;
+      let trackId = e?.track?.id;
+      let screenVideoTrackState = e?.participant?.tracks?.screenVideo?.track;
       console.log(e);
 
       if (typeof screenVideoTrackState === 'undefined') {
@@ -182,9 +191,10 @@ export default function Call() {
       } else {
         if (trackType === 'video') {
           console.log(`A screenshare is starting!`);
+          setScreenShareStarted(!screenShareStarted);
           setScreenShareTrackId(trackId);
-          setScreenSharing(!isScreenSharing);
           setScreenShareEvent(e);
+          setScreenSharing(!isScreenSharing);
         } else {
           console.log(`Passing screenAudio when the video starts.`);
         }
@@ -282,6 +292,12 @@ export default function Call() {
     },
     [callObject]
   );
+
+  /**Display tiles when there is a change */
+  useEffect(() => {
+    console.log(`TILE CHANGE`);
+    console.log(tiles);
+  }, [tiles]);
 
   const displayLargeTiles = useMemo(() => {
     const participantTracks = [...tiles];
