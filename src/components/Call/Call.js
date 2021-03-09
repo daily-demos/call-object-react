@@ -77,16 +77,11 @@ export default function Call() {
   const addOrUpdateTile = useCallback(
     (e) => {
       logDailyEvent(e);
-
+      console.log(`✨IN OUR UPDATE FUNCTION✨`);
       const isSharedScreen = e?.track?.id === screenShareTrackId;
       const isLarge =
         isSharedScreen || (!e?.participant?.local && !isScreenSharing);
       const isLocalPerson = e?.participant?.local;
-
-      console.log(`The trackId in addTile is ${e?.track?.id}`);
-      console.log(`The screenshare track in state: ${screenShareTrackId}`);
-      console.log(`It is a shared screen: ${isSharedScreen}`);
-      console.log(`The shared screen isLarge ${isLarge}`);
 
       const tile = {
         id: !isSharedScreen
@@ -108,11 +103,20 @@ export default function Call() {
           console.log(`PUSH PUSH PUSH`);
         } else {
           arr[index] = obj;
+          console.log(`DUPE DUPE UPDATE`);
         }
         return arr;
       }
 
       const updatedTiles = addOrUpdate(tiles.slice(), tile);
+
+      if (isSharedScreen) {
+        updatedTiles.forEach((t) => {
+          if (!t.id.includes('-screen')) {
+            t.isLarge = false;
+          }
+        });
+      }
       setTiles(updatedTiles);
     },
     [tiles, screenShareTrackId, isScreenSharing]
@@ -133,13 +137,12 @@ export default function Call() {
   );
 
   useEffect(() => {
-    console.log(`New screen sharing state is: ${isScreenSharing}`);
-    console.log(`The track that is being shared is: ${screenShareTrackId}`);
-    console.log(screenShareEvent);
     if (isScreenSharing && screenShareStarted && screenShareEvent) {
-      console.log('Doing a thing just once.');
       addOrUpdateTile(screenShareEvent);
       setScreenShareStarted(!screenShareStarted);
+      // Change all other tiles to be small
+      // Filter out the ones that are not the target
+      // Set all their isLarge to isSmall
     }
   }, [
     isScreenSharing,
@@ -147,6 +150,7 @@ export default function Call() {
     screenShareEvent,
     screenShareTrackId,
     screenShareStarted,
+    tiles,
   ]);
 
   /**
@@ -178,6 +182,7 @@ export default function Call() {
       let trackType = e?.track?.kind;
       let trackId = e?.track?.id;
       let screenVideoTrackState = e?.participant?.tracks?.screenVideo?.track;
+      console.log(`START`);
       console.log(e);
 
       if (typeof screenVideoTrackState === 'undefined') {
@@ -206,11 +211,24 @@ export default function Call() {
     return function cleanup() {
       callObject.off('track-started', handleTrackStarted);
     };
-  }, [callObject, isScreenSharing, screenShareTrackId, tiles, addOrUpdateTile]);
+  }, [
+    callObject,
+    isScreenSharing,
+    screenShareTrackId,
+    screenShareStarted,
+    tiles,
+    addOrUpdateTile,
+  ]);
 
-  /**
-   * PLACEHOLDER for track-stopped on screenshare
-   */
+  useEffect(() => {
+    if (!callObject) return;
+
+    function handleStartedCamera(e) {
+      console.log(e);
+    }
+
+    callObject.on('started-camera', handleStartedCamera);
+  }, [callObject]);
 
   /**
    * When the call object is set, listen for participants leaving a call and remove their tracks
@@ -228,6 +246,30 @@ export default function Call() {
       callObject.off('participant-left', handleParticipantLeft);
     };
   }, [callObject, isScreenSharing, removeTile]);
+
+  /**
+   * If a screenshare stops, remove the track from the list
+   */
+  useEffect(() => {
+    if (!callObject) return;
+
+    function handleTrackStopped(e) {
+      console.log(`STOP`);
+      console.log(e);
+      if (e.track.id === screenShareTrackId) {
+        const remainingTiles = tiles.filter(
+          (t) => t.id !== `${e?.participant?.session_id}-screen`
+        );
+        setTiles(remainingTiles);
+      }
+    }
+
+    callObject.on('track-stopped', handleTrackStopped);
+
+    return function cleanup() {
+      callObject.off('track-stopped', handleTrackStopped);
+    };
+  }, [callObject, screenShareTrackId]);
 
   /**
    * Start listening for call errors, when the callObject is set.
@@ -309,7 +351,7 @@ export default function Call() {
             key={`large-${i}`}
             videoTrackState={t.videoTrackState}
             audioTrackState={t.audioTrackState}
-            isLocalPerson={t.isLocal}
+            isLocalPerson={t.isLocalPerson}
             isLarge={t.isLarge}
             disableCornerMessage={t.disableCornerMessage}
             onClick={
@@ -335,7 +377,7 @@ export default function Call() {
             key={`small-${i}`}
             videoTrackState={t.videoTrackState}
             audioTrackState={t.audioTrackState}
-            isLocalPerson={t.isLocal}
+            isLocalPerson={t.isLocalPerson}
             isLarge={t.isLarge}
             disableCornerMessage={t.disableCornerMessage}
             onClick={t.onClick}
