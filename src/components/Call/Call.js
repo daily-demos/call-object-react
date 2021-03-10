@@ -30,7 +30,6 @@ export default function Call() {
   // const [callState, dispatch] = useReducer(callReducer, initialCallState);
   const [isScreenSharing, setScreenSharing] = useState(false);
   const [screenShareTrackId, setScreenShareTrackId] = useState('');
-  // Set a flag for screenshare started
   const [screenShareStarted, setScreenShareStarted] = useState(false);
   const [screenShareEvent, setScreenShareEvent] = useState({});
   const [tiles, setTiles] = useState([]);
@@ -72,12 +71,12 @@ export default function Call() {
   // }, [callObject]);
 
   /**
-   * Add or update a participant's "tile" details
+   * Add or update a participant's "tile" data
    */
   const addOrUpdateTile = useCallback(
     (e) => {
       logDailyEvent(e);
-      console.log(`✨IN OUR UPDATE FUNCTION✨`);
+      console.log(`✨ ADD OR UPDATE ✨ `);
       const isSharedScreen = e?.track?.id === screenShareTrackId;
       const isLarge =
         isSharedScreen || (!e?.participant?.local && !isScreenSharing);
@@ -100,10 +99,10 @@ export default function Call() {
         const index = arr?.findIndex((e) => e?.id === obj?.id);
         if (index === -1) {
           arr.push(obj);
-          console.log(`PUSH PUSH PUSH`);
+          console.log(`➕ ADDING a tile ➕`);
         } else {
           arr[index] = obj;
-          console.log(`DUPE DUPE UPDATE`);
+          console.log(`👯‍♀️ UPDATING the tile 👯‍♀️`);
         }
         return arr;
       }
@@ -123,45 +122,39 @@ export default function Call() {
   );
 
   /**
-   * Remove a participant's tile details from state
+   * Remove a participant's tile data
    */
   const removeTile = useCallback(
     (e) => {
+      console.log(`✂️ REMOVE TILE ✂️`);
       logDailyEvent(e);
       const remainingTiles = tiles.filter(
-        (t) => t.id !== e?.participant?.session_id
+        (t) => t.videoTrackState.track !== e?.track
       );
       setTiles(remainingTiles);
     },
     [tiles]
   );
 
-  useEffect(() => {
-    if (isScreenSharing && screenShareStarted && screenShareEvent) {
-      addOrUpdateTile(screenShareEvent);
-      setScreenShareStarted(!screenShareStarted);
-      // Change all other tiles to be small
-      // Filter out the ones that are not the target
-      // Set all their isLarge to isSmall
-    }
-  }, [
-    isScreenSharing,
-    addOrUpdateTile,
-    screenShareEvent,
-    screenShareTrackId,
-    screenShareStarted,
-    tiles,
-  ]);
-
   /**
-   * When the call object is set, listen and react to participant updates
+   * When the call object is set, reflect participant-updated change in tiles
    */
   useEffect(() => {
     if (!callObject) return;
 
     function handleParticipantUpdate(e) {
       logDailyEvent(e);
-      addOrUpdateTile(e);
+      console.log(`💅 participant-updated makeover 💅`);
+      console.log(e);
+
+      // TEST: If the participant-updated is sharing a screen, don't do anything
+      if (
+        e?.participant?.tracks?.screenVideo.track?.id === screenShareTrackId
+      ) {
+        console.log(`💕 it's the participant screensharing, do nothing`);
+      } else {
+        addOrUpdateTile(e);
+      }
     }
 
     callObject.on('participant-updated', handleParticipantUpdate);
@@ -182,7 +175,7 @@ export default function Call() {
       let trackType = e?.track?.kind;
       let trackId = e?.track?.id;
       let screenVideoTrackState = e?.participant?.tracks?.screenVideo?.track;
-      console.log(`START`);
+      console.log(`🟢 TRACK STARTING 🟢`);
       console.log(e);
 
       if (typeof screenVideoTrackState === 'undefined') {
@@ -190,19 +183,15 @@ export default function Call() {
           addOrUpdateTile(e);
         } else if (trackType === 'audio') {
           console.log(
-            `We'll pass audio when we pass video, because one tile holds both tracks.`
+            `We listen for audio changes on participant-updated, so nothing to do here.`
           );
         }
       } else {
-        if (trackType === 'video') {
-          console.log(`A screenshare is starting!`);
-          setScreenShareStarted(!screenShareStarted);
-          setScreenShareTrackId(trackId);
-          setScreenShareEvent(e);
-          setScreenSharing(!isScreenSharing);
-        } else {
-          console.log(`Passing screenAudio when the video starts.`);
-        }
+        console.log(`🎬 Screenshare starting 🎬`);
+        setScreenShareStarted(!screenShareStarted);
+        setScreenShareTrackId(trackId);
+        setScreenShareEvent(e);
+        setScreenSharing(!isScreenSharing);
       }
     }
 
@@ -220,47 +209,24 @@ export default function Call() {
     addOrUpdateTile,
   ]);
 
-  useEffect(() => {
-    if (!callObject) return;
-
-    function handleStartedCamera(e) {
-      console.log(e);
-    }
-
-    callObject.on('started-camera', handleStartedCamera);
-  }, [callObject]);
-
   /**
-   * When the call object is set, listen for participants leaving a call and remove their tracks
-   */
-  useEffect(() => {
-    if (!callObject) return;
-
-    function handleParticipantLeft(e) {
-      removeTile(e);
-    }
-
-    callObject.on('participant-left', handleParticipantLeft);
-
-    return function cleanup() {
-      callObject.off('participant-left', handleParticipantLeft);
-    };
-  }, [callObject, isScreenSharing, removeTile]);
-
-  /**
-   * If a screenshare stops, remove the track from the list
+   * Listen for track stops, and remove a track if it has ended (participant left)
    */
   useEffect(() => {
     if (!callObject) return;
 
     function handleTrackStopped(e) {
-      console.log(`STOP`);
+      console.log(`🛑 TRACK STOPPED 🛑`);
       console.log(e);
-      if (e.track.id === screenShareTrackId) {
-        const remainingTiles = tiles.filter(
-          (t) => t.id !== `${e?.participant?.session_id}-screen`
-        );
-        setTiles(remainingTiles);
+
+      if (e?.track?.readyState === 'ended') {
+        removeTile(e);
+      } else if (e?.track?.id === screenShareTrackId) {
+        removeTile(e);
+        setScreenShareTrackId('');
+        setScreenShareEvent({});
+        setScreenSharing(!isScreenSharing);
+        // TODO: Set tiles back to normal size
       }
     }
 
@@ -269,7 +235,7 @@ export default function Call() {
     return function cleanup() {
       callObject.off('track-stopped', handleTrackStopped);
     };
-  }, [callObject, screenShareTrackId]);
+  }, [callObject, screenShareTrackId, tiles, removeTile]);
 
   /**
    * Start listening for call errors, when the callObject is set.
@@ -335,7 +301,9 @@ export default function Call() {
     [callObject]
   );
 
-  /**Display tiles when there is a change */
+  /**
+   * Whenever the list of tiles changes, display the new list
+   */
   useEffect(() => {
     console.log(`TILE CHANGE`);
     console.log(tiles);
@@ -343,7 +311,7 @@ export default function Call() {
 
   const displayLargeTiles = useMemo(() => {
     const participantTracks = [...tiles];
-    const largeTiles = participantTracks.filter((t) => t.isLarge === true);
+    const largeTiles = participantTracks.filter((t) => t.isLarge);
     return (
       <div className="large-tiles">
         {largeTiles?.map((t, i) => (
@@ -386,6 +354,24 @@ export default function Call() {
       </div>
     );
   }, [tiles]);
+
+  /**
+   * If somebody is screensharing, a screenshare started, and there is a screenShareEvent, show the shared screen
+   */
+  useEffect(() => {
+    if (!callObject) return;
+
+    if (isScreenSharing && screenShareStarted && screenShareEvent) {
+      addOrUpdateTile(screenShareEvent);
+      setScreenShareStarted(!screenShareStarted);
+    }
+  }, [
+    isScreenSharing,
+    addOrUpdateTile,
+    screenShareEvent,
+    screenShareStarted,
+    tiles,
+  ]);
 
   /**
    * Display a message
