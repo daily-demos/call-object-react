@@ -1,7 +1,6 @@
 import React, {
   useEffect,
   useContext,
-  // useReducer,
   useState,
   useCallback,
   useMemo,
@@ -10,55 +9,38 @@ import './Call.css';
 import Tile from '../Tile/Tile';
 import CallObjectContext from '../../CallObjectContext';
 import CallMessage from '../CallMessage/CallMessage';
-// import {
-//   initialCallState,
-//   CLICK_ALLOW_TIMEOUT,
-//   PARTICIPANTS_CHANGE,
-//   CAM_OR_MIC_ERROR,
-//   FATAL_ERROR,
-//   callReducer,
-//   isLocal,
-//   isScreenShare,
-//   containsScreenShare,
-//   shouldIncludeScreenCallItem,
-//   getMessage,
-// } from './callState';
 import { logDailyEvent } from '../../logUtils';
 
 export default function Call() {
   const callObject = useContext(CallObjectContext);
-  // const [callState, dispatch] = useReducer(callReducer, initialCallState);
-  // const [isScreenSharing, setScreenSharing] = useState(false);
-  // const [screenShareTrackId, setScreenShareTrackId] = useState('');
-  // const [screenShareStarted, setScreenShareStarted] = useState(false);
-  // const [screenShareEvent, setScreenShareEvent] = useState({});
-  // const [tiles, setTiles] = useState([]);
   const [participantUpdated, setParticipantUpdated] = useState(null);
   const [participants, setParticipants] = useState([]);
 
-  const handleTrackStarted = useCallback(
-    (e) => {
-      console.log(`TRACK STARTED`);
-      setParticipantUpdated(
-        `track-started-${e?.participant?.user_id}-${Date.now()}`
-      );
-    },
-    [setParticipantUpdated]
-  );
+  const handleTrackStarted = useCallback((e) => {
+    logDailyEvent(e);
+    setParticipantUpdated(
+      `track-started-${e?.participant?.user_id}-${Date.now()}`
+    );
+  }, []);
 
-  const handleTrackStopped = (e) => {
+  const handleTrackStopped = useCallback((e) => {
+    logDailyEvent(e);
     setParticipantUpdated(
       `track-stopped-${e?.participant?.user_id}-${Date.now()}`
     );
-  };
+  }, []);
 
-  const handleParticipantUpdate = (e) => {
-    console.log(`IN HANDLE UPDATE`);
-    console.log(callObject?.participants());
+  const handleParticipantUpdate = useCallback((e) => {
+    logDailyEvent(e);
     setParticipantUpdated(
       `participant-updated-${e?.participant?.user_id}-${Date.now()}`
     );
-  };
+  }, []);
+
+  const handleErrorEvent = useCallback((e) => {
+    logDailyEvent(e);
+    getMessage(e);
+  }, []);
 
   const getMessage = (e) => {
     let header = null;
@@ -81,11 +63,6 @@ export default function Call() {
       isError = true;
     }
     return header || detail ? { header, detail, isError } : null;
-  };
-
-  const handleErrorEvent = (e) => {
-    logDailyEvent(e);
-    getMessage(e);
   };
 
   /**
@@ -121,33 +98,18 @@ export default function Call() {
    */
   useEffect(() => {
     if (participantUpdated) {
-      console.log('[🎨 UPDATING PARTICIPANT LIST]');
-      console.log(callObject?.participants());
       const list = Object.values(callObject?.participants());
       setParticipants(list);
     }
   }, [participantUpdated, callObject]);
 
-  useEffect(() => {
-    console.log(`✨ Your participants just changed`);
-    console.log(participants);
-    console.log(callObject?.participants());
-  }, [participants, callObject]);
-
   const isScreenShare = useMemo(() => {
-    if (!callObject) return;
-    console.log(
-      `SCREENSHARE: ${participants?.some((p) => p?.tracks?.screenVideo?.track)}`
-    );
     return participants?.some((p) => p?.tracks?.screenVideo?.track);
   }, [participants, callObject]);
 
   const displayLargeTiles = useMemo(() => {
-    console.log('DISPLAY LARGE');
     const isLarge = true;
-    // If someone in the participants list has a screenshare
     if (isScreenShare) {
-      // Find the person who is screensharing
       const screenShare = participants?.find(
         (p) => p?.tracks?.screenVideo?.track
       );
@@ -158,7 +120,6 @@ export default function Call() {
               key={`screenshare`}
               videoTrackState={screenShare?.tracks?.screenVideo}
               audioTrackState={screenShare?.tracks?.audio}
-              isLocalPerson={screenShare?.local}
               isLarge={isLarge}
               disableCornerMessage={isScreenShare}
               onClick={
@@ -181,7 +142,6 @@ export default function Call() {
               key={`large-${i}`}
               videoTrackState={t?.tracks?.video}
               audioTrackState={t?.tracks?.audio}
-              isLocalPerson={t?.local}
               isLarge={isLarge}
               disableCornerMessage={isScreenShare}
               onClick={
@@ -200,7 +160,6 @@ export default function Call() {
 
   const displaySmallTiles = useMemo(() => {
     const isLarge = false;
-    // If someone is screensharing
     if (isScreenShare) {
       return (
         <div className="small-tiles">
@@ -232,7 +191,6 @@ export default function Call() {
               key={`small-${i}`}
               videoTrackState={t.tracks.video}
               audioTrackState={t.tracks.audio}
-              isLocalPerson={t.local}
               isLarge={isLarge}
               disableCornerMessage={false}
               onClick={
