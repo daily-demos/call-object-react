@@ -4,7 +4,7 @@
 
 [build.environment]
   # suppress failures for for build warnings
-  CI = false 
+  CI = "false"
 
 [template.environment]
   DAILY_API_KEY = "Replace with Daily API key"
