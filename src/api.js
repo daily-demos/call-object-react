@@ -9,10 +9,9 @@ const newRoomEndpoint =
  * in README.md
  *
  * See https://docs.daily.co/reference#create-room for more information on how
- * to use the Daily REST API to create rooms and what options are available. 
+ * to use the Daily REST API to create rooms and what options are available.
  */
 async function createRoom() {
-
   const exp = Math.round(Date.now() / 1000) + 60 * 30;
   const options = {
     properties: {
@@ -23,12 +22,19 @@ async function createRoom() {
     method: "POST",
     body: JSON.stringify(options),
     mode: 'cors',
-  }),
-    room = await response.json();
-  return room;
+  })
+  if (response.status === 200) {
+    return await response.json();
+  } else if (response.status === 404 &&
+             process.env.REACT_APP_DAILY_DOMAIN &&
+             process.env.REACT_APP_DAILY_ROOM) {
 
-  // Comment out the above and uncomment the below, using your own URL
-  // return { url: "https://your-domain.daily.co/hello" };
+    return {
+      url: `https://${process.env.REACT_APP_DAILY_DOMAIN}.daily.co/${process.env.REACT_APP_DAILY_ROOM}`
+    }
+  } else {
+    throw new Error("Unable to create a Daily room. Check out the README.md for setup instruction!")
+  }
 }
 
 export default { createRoom };
