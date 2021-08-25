@@ -50,3 +50,9 @@ Let us know how experimenting with this demo goes! Feel free to [open an Issue](
 ## What's next
 
 To get to know even more Daily API methods and events, explore our other demos, like [how to add your own chat interface](https://github.com/daily-co/daily-demos/tree/main/static-demos/simple-chat-demo).
+
+---
+
+## Related blog posts/tutorials
+
+Learn more about how to build your own video chat app in React using Daily with [this tutorial](https://www.daily.co/blog/building-a-custom-video-chat-app-with-react/).
