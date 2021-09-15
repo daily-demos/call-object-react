@@ -17,7 +17,7 @@ Thank you for looking into contributing to`daily-demos`! We want this repo to he
 
 ### Run call-object-react locally
 
-Please follow the instructions in `README.md`. 
+Please follow the instructions in `README.md`.
 
 ### Read our code of conduct
 
@@ -36,7 +36,7 @@ _Bug reports_
 Before creating a new bug report, please do two things:
 
 1. If you want to report a bug you experienced while on a Daily call, try out these [troubleshooting tips](https://help.daily.co/en/articles/2303117-top-troubleshooting-tips) to see if that takes care of the bug.
-2. If you're still seeing the error, check to see if somebody else has [already filed the issue](https://github.com/daily-co/daily-demos/issues) before creating a new one.
+2. If you're still seeing the error, check to see if somebody else has [already filed the issue](https://github.com/daily-demos/call-object-react/issues) before creating a new one.
 
 If you've done those two things and need to create an issue, we'll ask you to tell us:
 
@@ -70,4 +70,4 @@ If you've built a project on Daily that you want to share with other developers,
 
 To add a new demo project:
 
-Open a PR in [awesome-daily](#) and add a link to your project. 
+Open a PR in [awesome-daily](#) and add a link to your project.
