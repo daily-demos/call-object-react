@@ -45,7 +45,7 @@ If you want access to the Daily REST API (using the proxy as specified in `netli
 
 ## Contributing and feedback
 
-Let us know how experimenting with this demo goes! Feel free to [open an Issue](https://github.com/daily-co/daily-demos/issues), or reach us any time at `help@daily.co`. You can also join the conversation about this demo on [DEV](https://dev.to/trydaily/build-a-video-chat-app-in-minutes-with-react-and-daily-js-481c).
+Let us know how experimenting with this demo goes! Feel free to [open an Issue](https://github.com/daily-demos/call-object-react/issues), or reach us any time at `help@daily.co`. You can also join the conversation about this demo on [DEV](https://dev.to/trydaily/build-a-video-chat-app-in-minutes-with-react-and-daily-js-481c).
 
 ## What's next
 
