@@ -43,15 +43,20 @@ export default function Tile(props) {
   const audioEl = useRef(null);
 
   const videoTrack = useMemo(() => {
-    return props.videoTrackState && props.videoTrackState.state === 'playable'
-      ? props.videoTrackState.track
-      : null;
+    // For video let's use the `track` field, which is only present when video
+    // is in the "playable" state.
+    // (Using `persistentTrack` could result in a still frame being shown when
+    // remote video is muted).
+    return props.videoTrackState?.track;
   }, [props.videoTrackState]);
 
   const audioTrack = useMemo(() => {
-    return props.audioTrackState && props.audioTrackState.state === 'playable'
-      ? props.audioTrackState.track
-      : null;
+    // For audio let's use the `persistentTrack` field, which is present whether
+    // or not audio is in the "playable" state.
+    // (Using `track` would result in a bug where, if remote audio were unmuted
+    // while this call was is in a Safari background tab, audio wouldn't resume
+    // playing).
+    return props.audioTrackState?.persistentTrack;
   }, [props.audioTrackState]);
 
   const videoUnavailableMessage = useMemo(() => {
@@ -67,7 +72,7 @@ export default function Tile(props) {
    */
   useEffect(() => {
     videoEl.current &&
-      (videoEl.current.srcObject = new MediaStream([videoTrack]));
+      (videoEl.current.srcObject = videoTrack && new MediaStream([videoTrack]));
   }, [videoTrack]);
 
   /**
@@ -75,7 +80,7 @@ export default function Tile(props) {
    */
   useEffect(() => {
     audioEl.current &&
-      (audioEl.current.srcObject = new MediaStream([audioTrack]));
+      (audioEl.current.srcObject = audioTrack && new MediaStream([audioTrack]));
   }, [audioTrack]);
 
   function getVideoComponent() {
