@@ -1,4 +1,10 @@
-import React, { useEffect, useContext, useReducer, useCallback } from 'react';
+import React, {
+  useEffect,
+  useContext,
+  useReducer,
+  useCallback,
+  useState,
+} from 'react';
 import './Call.css';
 import Tile from '../Tile/Tile';
 import CallObjectContext from '../../CallObjectContext';
@@ -19,6 +25,10 @@ import { logDailyEvent } from '../../logUtils';
 
 export default function Call() {
   const callObject = useContext(CallObjectContext);
+  const [participantCounts, setParticipantCounts] = useState({
+    present: 0,
+    hidden: 0,
+  });
   const [callState, dispatch] = useReducer(callReducer, initialCallState);
 
   /**
@@ -56,6 +66,43 @@ export default function Call() {
       }
     };
   }, [callObject]);
+
+  /**
+   * Start listening for participant count changes, when the callObject is set.
+   */
+  useEffect(() => {
+    if (!callObject) return;
+
+    function handleNewParticipantCounts(event) {
+      event && logDailyEvent(event);
+      setParticipantCounts(callObject.participantCounts());
+      // Sanity-check event payload against getter method
+      if (
+        event &&
+        !(
+          event.participantCounts.present ==
+            callObject.participantCounts().present &&
+          event.participantCounts.hidden ==
+            callObject.participantCounts().hidden
+        )
+      ) {
+        console.error(
+          "'participant-counts-updated' event payload doesn't match callObject.participantCounts()"
+        );
+      }
+    }
+
+    // Use initial participant counts
+    handleNewParticipantCounts();
+
+    // Listen for changes in participant counts
+    callObject.on('participant-counts-updated', handleNewParticipantCounts);
+
+    // Stop listening for changes in participant counts
+    return function cleanup() {
+      callObject.off('participant-counts-updated', handleNewParticipantCounts);
+    };
+  });
 
   /**
    * Start listening for call errors, when the callObject is set.
@@ -175,6 +222,10 @@ export default function Call() {
         }
       </div>
       <div className="small-tiles">{smallTiles}</div>
+      <div className="participant-counts">
+        <p>Participants: {participantCounts.present}</p>
+        <p>Hidden observers: {participantCounts.hidden}</p>
+      </div>
       {message && (
         <CallMessage
           header={message.header}

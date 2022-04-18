@@ -3,6 +3,18 @@
   height: calc(100% - 60px); /* Space for the tray */
 }
 
+.participant-counts {
+  position: absolute;
+  left: 10px;
+  top: 0px;
+}
+
+.participant-counts p {
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 17px;
+}
+
 .large-tiles {
   height: calc(100% - 132.5px);
   width: 80%;
