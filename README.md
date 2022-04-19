@@ -24,9 +24,9 @@ Please note this project is designed to work with rooms that have [privacy](http
 ## Running locally
 
 1. Install dependencies `npm i`
-2. Start dev server `npm run dev`
-3. Then open your browser and go to `http://localhost:3002`
-4. Add the Daily room URL you created to line 31 of `api.js`, and follow the comment's instructions.
+2. Copy `sample.env` to a new file called `.env`, and fill in the REACT_APP_ values
+3. Start dev server `npm run dev`
+4. If it didn't open automatically, open your browser and go to `http://localhost:3002`
 
 OR...
 
@@ -38,7 +38,7 @@ If you want access to the Daily REST API (using the proxy as specified in `netli
    [![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/daily-demos/call-object-react)
 2. Install the Netlify CLI `npm i -g netlify-cli`
 3. Login to your account `netlify login`
-4. Rename `sample.env` to `.env` and add your API key
+4. Copy `sample.env` to a new file called `.env`, and fill in the DAILY_API_KEY
 5. Start the dev server `netlify dev`
 
 > Note: If the API proxy isn't working locally you may need to run `netlify build` first. This will put API key in the `netlify.toml` file, so make sure you don't commit this change.
