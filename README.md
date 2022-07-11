@@ -1,5 +1,11 @@
 # A video chat app using React and the Daily JavaScript API
 
+❗❗ **Note: As of July 2022, Daily's team recommends using the [custom-video-daily-react-hooks](https://github.com/daily-demos/custom-video-daily-react-hooks) demo app for sample code instead of this repo. It has a similar feature set (all features covered here are included, plus some extras!). Additionally, it showcases how to build a custom Daily video app using [Daily React Hooks](https://docs.daily.co/reference/daily-react-hooks), Daily's custom React hooks library.**
+
+**Daily recommends using [Daily React Hooks](https://docs.daily.co/reference/daily-react-hooks) for all custom React apps.**
+
+---
+
 This demo is meant to showcase a basic but complete video chat web app using React and the low-level Daily call object. [The call object](https://docs.daily.co/docs/build-a-custom-video-chat-interface#daily-call-object) gives you direct access to the audio and video tracks, letting you build your app however you'd like with those primitives.
 
 ![Two participants on a video chat call](./screenshot-react-demo.png)
