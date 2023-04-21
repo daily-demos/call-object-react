@@ -26,7 +26,7 @@ async function createRoom() {
   return room;
 
   // Comment out the above and uncomment the below, using your own URL
-  // return { url: 'https://liza.staging.daily.co/mutest' };
+  // return { url: 'https://your-domain.daily.co/hello' }
 }
 
 export default { createRoom };
