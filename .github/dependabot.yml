@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily" # update frequency
+    allow:
+      - dependency-name: "@daily-co/daily-js"
+        dependency-type: "direct"
