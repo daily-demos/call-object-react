@@ -167,6 +167,9 @@ export default function Call() {
   const message = getMessage(callState);
   return (
     <div className="call">
+      <div className="banner">
+        Explore more ways to customize this call in the Daily docs.
+      </div>
       <div className="large-tiles">
         {
           !message
