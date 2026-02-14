@@ -1,6 +1,87 @@
+:root {
+  --fontFamily: GraphikRegular, 'Helvetica Neue', Sans-Serif;
+  --white: #ffffff;
+  --grey: #c8d1dc;
+  --darkblue: #121a24;
+  --lightgreen: #72cc18;
+}
+
 .app {
-  background-color: #4a4a4a;
+  font-family: var(--fontFamily);
+  color: var(--white);
+  background-color: var(--darkblue);
   position: absolute;
   height: 100%;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  position: relative;
+  bottom: 80%;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem;
+}
+
+.introInstructions {
+  position: relative;
+  bottom: 100px;
+}
+
+.dailyLogo {
+  width: 70px;
+}
+
+.title {
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.instructions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.roomURL {
+  width: 300px;
+  line-height: 18px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  padding-left: 7px;
+  border-radius: 8px;
+}
+
+.startButton,
+.startButtonReady,
+.createRoomButton {
+  padding: 8px 16px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 8px;
+  background-color: var(--white);
+  border-width: 1px;
+  border-color: var(--grey);
+  color: var(--darkblue);
+  cursor: pointer;
+  width: 250px;
+}
+
+.startButtonReady {
+  background-color: var(--lightgreen);
 }
