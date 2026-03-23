@@ -5,7 +5,7 @@
   left: 50%;
   position: absolute;
   transform: translate(-50%, -50%);
-  color: #ffffff;
+  color: var(--white);
   text-align: center;
   font-size: 14px;
   line-height: 17px;
@@ -13,7 +13,7 @@
 
 .call-message.error {
   color: #d81a1a;
-  background-color: #ffffff;
+  background-color: var(--white);
 }
 
 .call-message-header {
