@@ -1,5 +1,5 @@
 import React from 'react';
-import './StartButton.css';
+// import './StartButton.css';
 
 /**
  * Props:
@@ -9,11 +9,11 @@ import './StartButton.css';
 export default function StartButton(props) {
   return (
     <button
-      className="start-button"
+      className={props.disabled ? 'startButton' : 'startButtonReady'}
       disabled={props.disabled}
       onClick={props.onClick}
     >
-      Click to start a call
+      Start call
     </button>
   );
 }
